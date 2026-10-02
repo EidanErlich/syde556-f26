@@ -1,0 +1,227 @@
+\documentclass[9pt,letterpaper]{extarticle}
+\usepackage[margin=0.5in,headheight=12pt,headsep=6pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small SYDE 556/750 \quad Formula sheet: PN1 \& PN2 (Lectures 1--5)}
+\rhead{\small \thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{2pt}
+\setlength{\columnsep}{14pt}
+\setlength{\columnseprule}{0.2pt}
+\setlist{leftmargin=1.1em,itemsep=0pt,topsep=1pt,parsep=0pt}
+\titleformat{\section}{\normalsize\bfseries\color{MidnightBlue}}{}{0pt}{}[{\color{MidnightBlue}\titlerule}]
+\titlespacing*{\section}{0pt}{5pt}{1pt}
+\newcommand{\sub}[1]{\par\vspace{2pt}\textbf{#1}\quad}
+\newcommand{\tip}[1]{{\color{BrickRed}\small$\triangleright$~#1}}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\allowdisplaybreaks
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+\setlength{\abovedisplayshortskip}{1pt}
+\setlength{\belowdisplayshortskip}{1pt}
+
+\begin{document}
+\begin{multicols}{2}
+
+\section{NEF in one line}
+\textbf{Principle 1 (representation):} nonlinear encoding $x \to a$, linear decoding $a \to \hat x$.
+\textbf{Principle 2 (transformation):} connection weights compute $y = f(x)$.
+\[
+\underbrace{J_i = \alpha_i\langle e_i, x\rangle + \Jb_i}_{\text{encode}}\ \to\ \underbrace{a_i = G(J_i)}_{\text{neuron}}\ \to\ \underbrace{\hat x = \textstyle\sum_i d_i a_i}_{\text{decode}}
+\]
+
+\section{Neuron models (L2)}
+\sub{ReLU} $G(J) = \max(J, 0)$.
+\sub{LIF subthreshold} (normalized: rest 0, $v_{\mathrm{th}} = 1$)
+\[
+\frac{dv}{dt} = \frac{1}{\trc}(J - v),\qquad v(t) = J + (v_0 - J)e^{-t/\trc}.
+\]
+Spike when $v \ge 1$; reset $v = 0$, hold for $\tref$; clamp $v \ge 0$.
+\sub{Time to threshold} (from $v_0 = 0$, needs $J > 1$)
+\[
+t_{\mathrm{th}} = -\trc\ln\!\big(1 - \tfrac1J\big),\qquad \text{ISI} = \tref + t_{\mathrm{th}}.
+\]
+\sub{LIF rate}
+\[
+G(J) = \frac{1}{\tref - \trc\ln(1 - 1/J)}\ \ (J > 1),\quad 0 \text{ otherwise.}
+\]
+\sub{Inverse} $J(a) = \dfrac{1}{1 - \exp\!\big((\tref - 1/a)/\trc\big)}$.
+\tip{Max possible rate $1/\tref$ (500\,Hz for 2\,ms). LIF is concave, steep just above threshold; ReLU is a straight line.}
+
+\sub{Euler step} $v_{k+1} = v_k + \frac{\Delta t}{\trc}(J - v_k) = (1 - \tfrac{\Delta t}{\trc})v_k + \tfrac{\Delta t}{\trc}J$. From $v_0 = 0$: $v_k = J\big(1 - (1 - \tfrac{\Delta t}{\trc})^k\big)$. Spikes snap to the grid, so the ISI rounds \emph{up} and high rates are most affected.
+
+\section{Gain \& bias from $a_{\max}$, $\xi$ (L2--3)}
+Conditions: $J(\text{at } ex = r) = J_{\max} = G^{-1}(a_{\max})$, \ $J(\text{at } ex = \xi) = J_{\mathrm{th}}$.
+\[
+\alpha = \frac{J_{\max} - J_{\mathrm{th}}}{r - \xi},\qquad \Jb = J_{\mathrm{th}} - \alpha\xi.
+\]
+\begin{itemize}
+\item ReLU: $J_{\mathrm{th}} = 0$, $J_{\max} = a_{\max}$ \ $\Rightarrow \alpha = \frac{a_{\max}}{r - \xi}$, $\Jb = -\alpha\xi$.
+\item LIF: $J_{\mathrm{th}} = 1$, $J_{\max} = J(a_{\max})$ from the inverse above.
+\item Radius $r$: same as using $x/r$ with radius 1; gain becomes $r\alpha$.
+\item Intercept in $x$: neuron with $e = +1$ fires for $x > \xi$; with $e = -1$ fires for $x < -\xi$.
+\end{itemize}
+\tip{Two-rate spec (e.g.\ 40\,Hz at $x=0$, 150\,Hz at $x=1$): $\Jb = J(40)$, $\alpha = J(150) - J(40)$.}
+
+\section{Vectors \& tuning (L3)}
+$J = \alpha\langle e, x\rangle + \Jb$, with $\|e\| = 1$ (preferred direction).
+\begin{itemize}
+\item Threshold is the line/plane $\langle e, x\rangle = \xi$; the half-space beyond it fires.
+\item On the unit circle $x = (\cos\theta, \sin\theta)$: $\langle e, x\rangle = \cos(\theta - \theta_e)$. The tuning curve is ``cosine-like'' but rectified and LIF-warped.
+\item Random uniform encoders: angle $\phi \sim U[0, 2\pi)$, $e = (\cos\phi, \sin\phi)$.
+\end{itemize}
+
+\section{Least-squares decoders (L3)}
+Shapes ($n$ neurons, $m$ or $N$ samples, $d$ dims): $A \in \mathbb{R}^{n\times N}$, $X \in \mathbb{R}^{d\times N}$, $D \in \mathbb{R}^{d\times n}$, $E \in \mathbb{R}^{n\times d}$.
+\sub{Objective} $\min_D \|X - DA\|_F^2 + N\sigma^2\|D\|_F^2$.
+\[
+\boxed{D^\T = (AA^\T + N\sigma^2 I)^{-1}AX^\T}
+\]
+Scalar: $d = (AA^\T + N\sigma^2 I)^{-1}Ax$, \ $\hat x = d^\T A$.
+\begin{itemize}
+\item $\sigma = 0$: normal equations $(AA^\T)d = Ax$.
+\item Noise $\sigma$ is often specified as a fraction of $\max A$ (e.g.\ $0.2\max A$).
+\item Fit on \emph{clean} $A$; noise enters only through the $N\sigma^2 I$ term.
+\item Regularization shrinks $d$: slightly worse on clean data, much better on noisy data.
+\item Units: $A$ in Hz $\Rightarrow$ $d$ in s.
+\end{itemize}
+\sub{2$\times$2 inverse} $\begin{bmatrix} a & b\\ c & d\end{bmatrix}^{-1} = \frac{1}{ad - bc}\begin{bmatrix} d & -b \\ -c & a\end{bmatrix}$.
+\tip{Symmetric pair with antisymmetric RHS: try $d = (\delta, -\delta)$, then $\delta = \text{rhs}_1/(a - b)$.}
+
+\section{Error measures \& scaling (L3)}
+\[
+\text{RMSE} = \sqrt{\tfrac1N\textstyle\sum_k (x_k - \hat x_k)^2},\quad \text{vector: } \sqrt{\tfrac{1}{Nd}\textstyle\sum_{k,j}(\hat x_{jk} - x_{jk})^2}
+\]
+\[
+E = E_{\mathrm{dist}} + E_{\mathrm{noise}},\qquad E_{\mathrm{noise}} = \sigma^2\textstyle\sum_i d_i^2,
+\]
+\[
+E_{\mathrm{dist}} = \tfrac1N\textstyle\sum_k (x_k - \hat x_k^{\mathrm{clean}})^2.
+\]
+\begin{itemize}
+\item $E_{\mathrm{noise}} \propto 1/n$ (doubling $n$ halves it; log-log slope $-1$).
+\item $E_{\mathrm{dist}} \propto 1/n^2$ (doubling $n$ quarters it; slope $-2$).
+\item Fixed decoders: $\sigma \to \sigma/10$ gives $E_{\mathrm{noise}} \to E_{\mathrm{noise}}/100$.
+\item RMSE then scales as $1/\sqrt n$ in the noise-limited regime.
+\end{itemize}
+\sub{Population vector} $\hat x \approx E^\T a$ (encoders as decoders). Directions are roughly right for broad, uniform populations, but magnitudes are wrong. Fitted $D$ is better overall.
+\tip{Normalize columns to unit length to compare \emph{direction} only.}
+
+\section{Spike trains (L4)}
+\[
+a_i(t) = \textstyle\sum_k \delta(t - t_i^k),\qquad \int\delta = 1.
+\]
+Discrete: a spike is a sample of height $1/\Delta t$ (so area $= 1$).
+\tip{If spikes are stored as 1s, a factor $1/\Delta t$ must appear somewhere for filtered trains to be in Hz. Sanity check: steady 150\,Hz gives filtered $\approx 150$.}
+\sub{Rate decoders on spikes} $\hat x(t) = \big((D a) * h\big)(t) = D(a * h)(t)$ (linear, so the filter can go before or after $D$).
+\sub{Two opposite neurons} $d_- = -d_+$ $\Rightarrow$ $\hat x = (r * h)$, with $r = a_+ - a_-$ (signed spikes).
+
+\section{Fourier essentials (L4)}
+\[
+X(\omega) = \int x(t)e^{-i\omega t}dt,\qquad \omega = 2\pi f.
+\]
+\begin{itemize}
+\item Real signal $\iff X(-\omega) = \overline{X(\omega)}$; then a pair gives $2\,\mathrm{Re}[Xe^{i\omega t}]$.
+\item $X = a + ib$: pair $= 2a\cos\omega t - 2b\sin\omega t$; magnitude $|X|$, phase $\arg X$.
+\item Convolution theorem: $\mathcal F[f * g] = FG$.
+\item Linear: $\mathcal F[af + bg] = aF + bG$.
+\item Parseval (series): $\frac1T\int_0^T x^2\,dt = \sum_k |X_k|^2$ $\Rightarrow$ RMS.
+\item A sinusoid of amplitude $A$ has mean square $A^2/2$.
+\end{itemize}
+\sub{Discrete grid} $N = T/\Delta t$, $\Delta\omega = 2\pi/T$ (i.e.\ $\Delta f = 1/T$), Nyquist $f = 1/(2\Delta t)$.
+\sub{Band-limited white noise} Random $X$ at $|f| \le$ limit, zero above; enforce conjugate symmetry; inverse FFT; rescale to the target RMS (rescaling does not change spectral shape).
+\tip{Higher limit means faster wiggles at the same RMS. One spectrum is ragged; the average over many is flat up to the limit.}
+
+\section{Filters (L4)}
+\sub{Convolution} $(f * h)(t) = \int f(t - t')h(t')\,dt'$; on spikes, $\sum_k h(t - t_k)$.
+\sub{Gaussian} $h = c^{-1}e^{-t^2/\sigma^2}$, unit area; acausal, low-pass.
+\sub{Optimal filter} minimize $\langle|X - RH|^2\rangle$ per frequency:
+\[
+\boxed{H(\omega) = \frac{\langle X\,\overline{R}\rangle}{\langle |R|^2\rangle}}\qquad \text{windowed: } \frac{(X\overline R) * W}{|R|^2 * W}
+\]
+\begin{itemize}
+\item Derivation: expand, set $\partial E/\partial\overline H = 0$.
+\item Where the signal has no power, $H = 0$ $\Rightarrow$ low-pass.
+\item $|R|$ is broadband (deltas have flat spectra); $|\hat X| = |H||R|$.
+\item Windowing in $\omega$ $=$ multiplying $h(t)$ by a time window, giving a short, smooth $h$.
+\item \textbf{Acausal} ($h(t<0) \ne 0$): fine offline, not biological.
+\end{itemize}
+\sub{PSC / synaptic filter} (causal)
+\[
+h(t) = \frac{t^n e^{-t/\tau}}{n!\,\tau^{n+1}},\ t \ge 0;\qquad H(\omega) = \frac{1}{(1 + i\omega\tau)^{n+1}}
+\]
+\begin{tabular}{@{}ll@{}}
+Peak & $t = n\tau$; height $1/\tau$, $1/(e\tau)$, $2e^{-2}/\tau$ ($n = 0, 1, 2$)\\
+Mean delay & $(n+1)\tau$\\
+Cutoff ($n=0$) & $f_c = 1/(2\pi\tau)$, \ $|H| = 1/\sqrt{1 + \omega^2\tau^2}$\\
+\end{tabular}
+\begin{itemize}
+\item $\uparrow n$: smoother, more delay. \ $\uparrow\tau$: less spike noise, more lag, attenuates fast signals.
+\item $n = 0$ by hand: each spike adds a jump of $d/\tau$; between events everything decays by $e^{-\Delta t/\tau}$.
+\item Typical $\tau$ (lecture 4): excitatory $\approx 5$\,ms, inhibitory GABA$_A$ $\approx 10$\,ms.
+\end{itemize}
+\tip{Slow signals relative to $\tau$ decode better: lag is a smaller fraction of their timescale.}
+
+\section{Transformations (L5)}
+\sub{Function decoder} replace targets $X$ by $Y = f(X)$:
+\[
+\boxed{(D^f)^\T = (AA^\T + N\sigma^2 I)^{-1}AY^\T}
+\]
+\begin{itemize}
+\item Linear in the target: $D^{aF + bG} = aD^F + bD^G$.
+\item Linear $f = Fx$: $D^f = FD$ exactly. Affine $2x + 1$: $D^f = 2D + D^{\mathbf 1}$ (need a constant decoder; $2D$ alone gives only $2x$).
+\item Smooth $f$ decode well; jagged or discontinuous $f$ decode badly. Error falls with $n$.
+\end{itemize}
+\sub{Weights}
+\[
+J_i = \sum_j w_{ij}a_j + \Jb_i,\qquad w_{ij} = \alpha_i\langle e_i, d^f_j\rangle,\quad W = ED^f
+\]
+($E$ includes the gains). $W$ has rank $\le d$.
+\begin{itemize}
+\item Cost: full $W$ is $\mathcal O(nm)$; decode-then-encode is $\mathcal O(d(n + m))$ (e.g.\ 40{,}000 vs 400 for $n = m = 200$, $d = 1$).
+\item Dale's principle: each pre-neuron's outgoing weights should share one sign; $ED$ usually violates it.
+\item $w > 0$ excitatory, $w < 0$ inhibitory, $w = 0$ no synapse.
+\end{itemize}
+\sub{Multiple inputs} currents add:
+\[
+J_i = \alpha_i\langle e_i, D^f a_1 + D^g a_2\rangle + \Jb_i \approx \alpha_i\langle e_i, f(x) + g(y)\rangle + \Jb_i
+\]
+\begin{itemize}
+\item Separate pre-populations only give $f(x) + g(y)$.
+\item Nonlinear in both (e.g.\ $xy$): use a 2D population representing $(x, y)$ and decode $f(x, y)$.
+\item Keep the output inside the target's radius: bound $|z|$ or estimate $\mathrm{RMS}(z) = \sqrt{\sum c_k^2\,\mathrm{Var}(x_k)}$ (independent inputs); otherwise enlarge the radius.
+\end{itemize}
+\sub{Deviations in a chain} lag of about $\tau$ per synaptic stage (an $n$-stage chain lags about $n\tau$); start-up transient (filters start at 0); spike ripple; edge distortion near $\pm r$; saturation beyond $r$.
+\sub{Recipe} (1) define encoders for input and output populations; (2) write $y = f(x)$; (3) solve $D^f$ on the input population; (4) substitute into the output encoding, $J = \alpha\langle e, D^f a\rangle + \Jb$.
+
+\section{Handy numbers ($\tref = 2$\,ms, $\trc = 20$\,ms)}
+\begin{tabular}{@{}lll@{}}
+$a$ (Hz) & $J(a)$ & note \\
+\midrule
+40 & 1.463 & $e^{-1.15} = 0.3166$\\
+100 & 3.033 & $e^{-0.4} = 0.6703$\\
+150 & 4.805 & $e^{-0.2333} = 0.7919$\\
+200 & 7.179 & $e^{-0.15} = 0.8607$ \\
+\end{tabular}
+
+Euler with $\Delta t = 1$\,ms: $\Delta t/\trc = 0.05$, \ $\ln 0.95 = -0.05129$.
+$e^{-1} = 0.368$, \ $e^{-2} = 0.135$, \ $e^{-3} = 0.0498$, \ $\sin\frac\pi4 = \cos\frac\pi4 = 0.7071$.
+
+\end{multicols}
+\end{document}

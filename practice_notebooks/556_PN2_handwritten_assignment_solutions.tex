@@ -1,0 +1,554 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Handwritten Assignment 2}
+\rhead{Answer guide}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\qsec}[1]{\vspace{8pt}{\large\bfseries #1}\par\vspace{2pt}}
+\newcommand{\ans}[1]{\par\vspace{3pt}{\bfseries #1}\quad}
+
+\newtcolorbox{result}{colback=Green!6,colframe=Green!50!black,boxrule=0.5pt,left=4pt,right=4pt,top=2pt,bottom=2pt,arc=1pt}
+\newtcolorbox{sketch}{colback=Blue!4,colframe=Blue!40!black,boxrule=0.4pt,left=4pt,right=4pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=What the sketch should show}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Handwritten Assignment 2 --- Answer Guide}\\[2pt]
+{\large\bfseries Temporal Representation and Feedforward Transformations}
+\end{center}
+
+This guide gives full working for every part. Final answers are boxed in green. Sketch descriptions are in blue boxes; your hand-drawn version should contain the labelled features listed there. Numbers are rounded to three significant figures at the end, but intermediate values are carried with more digits. Where a question asks for discussion, the points listed are what a complete answer should contain; wording can differ.
+
+Throughout: $\tref = 0.002$\,s, $\trc = 0.020$\,s.
+
+%=====================================================================
+\qsec{1. Band-limited white noise and the Fourier domain}
+
+\ans{1a.}
+Number of samples: $N = T/\Delta t = 1/0.001 = 1000$.
+
+Frequency spacing: $\Delta\omega = 2\pi/T = 2\pi \approx 6.28$\,rad/s, which is $1$\,Hz.
+
+Highest representable frequency (Nyquist): $f_{\mathrm{Ny}} = 1/(2\Delta t) = 500$\,Hz, so $\omega_{\mathrm{Ny}} = 2\pi \cdot 500 = 1000\pi \approx 3140$\,rad/s.
+
+With \texttt{limit} $= 10$\,Hz, the coefficients that may be nonzero are at $f = \pm 1, \pm 2, \ldots, \pm 10$\,Hz:
+\[
+\omega_k = \pm 2\pi k,\quad k = 1,\ldots,10 \quad\Rightarrow\quad \pm 6.28,\ \pm 12.6,\ \ldots,\ \pm 62.8\ \text{rad/s}.
+\]
+That is 20 complex coefficients. Conjugate symmetry fixes the negative-frequency coefficients from the positive ones, so only the 10 positive-frequency coefficients are free. Each has a real and an imaginary part.
+\begin{result}
+$N = 1000$, $\Delta\omega = 2\pi \approx 6.28$\,rad/s, Nyquist $= 500$\,Hz $\approx 3140$\,rad/s. Nonzero at $\omega = \pm 2\pi k$, $k = 1..10$ (up to $\pm 62.8$\,rad/s). Independent random reals: $10 \times 2 = 20$.
+\end{result}
+
+\ans{1b.}
+Take one frequency pair. Its contribution to $x(t)$ is
+\[
+X(\omega)e^{i\omega t} + X(-\omega)e^{-i\omega t}.
+\]
+If $X(-\omega) = \overline{X(\omega)}$, the second term is the complex conjugate of the first, because $\overline{X(\omega)e^{i\omega t}} = \overline{X(\omega)}\,e^{-i\omega t}$. A number plus its conjugate is real:
+\[
+X e^{i\omega t} + \overline{X e^{i\omega t}} = 2\,\mathrm{Re}\!\left[X(\omega)e^{i\omega t}\right] \in \mathbb{R}.
+\]
+Writing $X(\omega) = a + ib$, this is $2a\cos\omega t - 2b\sin\omega t$, which is real for any $a, b$.
+
+If instead $X(-\omega) = X(\omega) = a + ib$ with $b \ne 0$, the sum is $(a+ib)(e^{i\omega t} + e^{-i\omega t}) = 2(a+ib)\cos\omega t$, which has an imaginary part $2b\cos\omega t$. So plain symmetry does not give a real signal in general.
+\begin{result}
+Conjugate symmetry $X(-\omega) = \overline{X(\omega)}$ is the correct condition for a real signal. The two statements agree only when every $X(\omega)$ is real ($b = 0$), i.e.\ the signal is a sum of cosines only (an even signal). The lecture-note form is loose notation.
+\end{result}
+
+\ans{1c.}
+1\,Hz pair, with $\theta = 2\pi t$:
+\[
+(1 - i)e^{i\theta} + (1 + i)e^{-i\theta} = 2\,\mathrm{Re}\big[(1-i)(\cos\theta + i\sin\theta)\big] = 2(\cos\theta + \sin\theta).
+\]
+2\,Hz pair, with $\phi = 4\pi t$:
+\[
+\tfrac12 i\, e^{i\phi} - \tfrac12 i\, e^{-i\phi} = \tfrac12 i\,(2i\sin\phi) = -\sin\phi.
+\]
+So
+\[
+x(t) = 2\cos(2\pi t) + 2\sin(2\pi t) - \sin(4\pi t).
+\]
+The 1\,Hz part as a single cosine: $2\cos\theta + 2\sin\theta = 2\sqrt{2}\cos(\theta - \pi/4)$, since $2\sqrt2\cos(\pi/4) = 2$ and $2\sqrt2\sin(\pi/4) = 2$. Equivalently, $|X(2\pi)| = |1-i| = \sqrt2$ and $\arg X(2\pi) = -\pi/4$, and the real amplitude is $2|X| = 2\sqrt2$.
+
+Values:
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$t$ (s) & $2\cos 2\pi t$ & $2\sin 2\pi t$ & $-\sin 4\pi t$ & $x(t)$ \\
+\midrule
+0 & 2 & 0 & 0 & 2.00 \\
+0.125 & 1.414 & 1.414 & $-1$ & 1.83 \\
+0.25 & 0 & 2 & 0 & 2.00 \\
+0.375 & $-1.414$ & 1.414 & $+1$ & 1.00 \\
+0.5 & $-2$ & 0 & 0 & $-2.00$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{result}
+$x(t) = 2\cos 2\pi t + 2\sin 2\pi t - \sin 4\pi t$. The 1\,Hz component has amplitude $2\sqrt2 \approx 2.83$ and phase $-\pi/4$ ($-45^\circ$), i.e.\ it peaks at $t = 0.125$\,s. Values: $2.00,\ 1.83,\ 2.00,\ 1.00,\ -2.00$.
+\end{result}
+\begin{sketch}
+One period on $0 \le t \le 1$\,s. The curve is a 1\,Hz wave of amplitude 2.83 peaking near $t = 0.125$, with a 2\,Hz ripple of amplitude 1 on top. Extra points that help: $x(0.625) = -3.83$ (the global minimum), $x(0.75) = -2.00$, $x(0.875) = 1.00$, $x(1) = 2.00$. The maximum is 2.00, reached at both $t = 0$ and $t = 0.25$, with a slight dip to 1.83 between them.
+\end{sketch}
+
+\ans{1d.}
+Sum $|X|^2$ over all four coefficients:
+\[
+|1-i|^2 + |1+i|^2 + |\tfrac12 i|^2 + |-\tfrac12 i|^2 = 2 + 2 + 0.25 + 0.25 = 4.5.
+\]
+So $\mathrm{RMS} = \sqrt{4.5} \approx 2.12$.
+
+Check in the time domain: a sinusoid of amplitude $A$ has mean square $A^2/2$, and different-frequency components are orthogonal. So the mean square is $(2^2 + 2^2 + 1^2)/2 = 4.5$. \checkmark
+
+Scale factor: $0.5/2.121 = 0.236$. Multiplying $x(t)$ by a constant multiplies every $X(\omega)$ by the same constant, so the shape of $|X(\omega)|$ is unchanged and only its height changes.
+\begin{result}
+RMS $= \sqrt{4.5} \approx 2.12$. Scale by $0.5/2.12 \approx 0.236$. The spectral shape is unchanged; it is uniformly rescaled.
+\end{result}
+
+\ans{1e.}
+\begin{sketch}
+Horizontal axis is $\omega$ in rad/s, symmetric about 0. The average $|X(\omega)|$ is roughly constant for $0 < |\omega| \le 62.8$\,rad/s and zero beyond, so the plot is a flat-topped ``box'' with sharp edges at $\pm 62.8$\,rad/s (marked). The DC value is 0 if you zero it.
+\end{sketch}
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item \textbf{Ragged single spectrum:} each coefficient is an independent random draw, so $|X(\omega_k)|$ jumps randomly from one frequency to the next. Averaging 100 independent signals reduces these fluctuations (the standard error falls like $1/\sqrt{100}$), leaving the expected value, which is the same at every in-band frequency. That is what ``white'' means.
+\item \textbf{Different limits:} because all three have \texttt{rms} $= 0.5$, they have similar overall amplitude (typical excursions of about $\pm 1$). A higher limit spreads the same power over more and higher frequencies, so the 20\,Hz signal wiggles about four times faster than the 5\,Hz one. The fastest timescale is roughly $1/\texttt{limit}$: about 200\,ms, 100\,ms and 50\,ms between features for 5, 10 and 20\,Hz.
+\end{itemize}
+
+%=====================================================================
+\qsec{2. A single spiking LIF neuron}
+
+\ans{2a.}
+Invert $a = 1/[\tref - \trc\ln(1-1/J)]$:
+\[
+\tref - \frac1a = \trc\ln\!\Big(1 - \frac1J\Big) \;\Rightarrow\; 1 - \frac1J = e^{(\tref - 1/a)/\trc} \;\Rightarrow\; J = \frac{1}{1 - e^{(\tref - 1/a)/\trc}}.
+\]
+At $a = 40$\,Hz: $1/a = 0.025$, exponent $= (0.002 - 0.025)/0.020 = -1.15$, so
+$J_{40} = 1/(1 - 0.3166) = 1/0.6834 = 1.463$.
+
+At $a = 150$\,Hz: $1/a = 0.006667$, exponent $= (0.002 - 0.006667)/0.020 = -0.2333$, so
+$J_{150} = 1/(1 - 0.7919) = 1/0.2081 = 4.805$.
+
+Conditions: at $x = 0$, $J = \Jb = 1.463$. At $x = 1$, $J = \alpha + \Jb = 4.805$, so $\alpha = 4.805 - 1.463 = 3.342$.
+\begin{result}
+$J_{40} = 1.463$, $J_{150} = 4.805$, $\alpha = 3.342$, $\Jb = 1.463$.
+\end{result}
+
+\ans{2b.}
+With constant $J$, $\dot v = (J - v)/\trc$ is linear first-order with equilibrium $J$. With $v(0) = 0$:
+\[
+v(t) = J\big(1 - e^{-t/\trc}\big).
+\]
+Setting $v(t_{\mathrm{th}}) = 1$ gives $e^{-t_{\mathrm{th}}/\trc} = 1 - 1/J$, so $t_{\mathrm{th}} = -\trc\ln(1 - 1/J)$. This only has a solution if $J > 1$; otherwise $v$ approaches $J \le 1$ and never reaches threshold.
+
+The inter-spike interval is $t_{\mathrm{th}} + \tref$.
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item $x = 0$: $t_{\mathrm{th}} = -0.020\ln(0.3166) = 0.020 \times 1.15 = 0.0230$\,s. ISI $= 0.0250$\,s, i.e.\ 40\,Hz.
+\item $x = 1$: $t_{\mathrm{th}} = -0.020\ln(0.7919) = 0.020 \times 0.2333 = 0.00467$\,s. ISI $= 0.00667$\,s, i.e.\ 150\,Hz.
+\end{itemize}
+\begin{result}
+$x = 0$: $t_{\mathrm{th}} = 23.0$\,ms, ISI $= 25.0$\,ms. \quad $x = 1$: $t_{\mathrm{th}} = 4.67$\,ms, ISI $= 6.67$\,ms. (These reproduce 40 and 150\,Hz, as designed.)
+\end{result}
+
+\ans{2c.}
+With $\Delta t/\trc = 0.001/0.020 = 0.05$:
+\[
+v_{k+1} = v_k + 0.05(J - v_k) = 0.95\,v_k + 0.05\,J.
+\]
+For $x = 1$, $J = 4.805$, so $0.05J = 0.2403$:
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$k$ & 1 & 2 & 3 & 4 & 5 \\
+\midrule
+$v_k$ & 0.240 & 0.469 & 0.685 & 0.891 & 1.087 \\
+\bottomrule
+\end{tabular}
+\end{center}
+(for example, $v_2 = 0.95(0.2403) + 0.2403 = 0.4685$, and $v_5 = 0.95(0.8913) + 0.2403 = 1.0870 \ge 1$, so it spikes at $k = 5$.)
+
+General form, by induction: $v_0 = 0 = J(1 - 0.95^0)$. If $v_k = J(1 - 0.95^k)$, then
+\[
+v_{k+1} = 0.95J(1 - 0.95^k) + 0.05J = J - 0.95^{k+1}J = J(1 - 0.95^{k+1}).\ \checkmark
+\]
+This is the discrete version of $J(1 - e^{-t/\trc})$, with $0.95$ standing in for $e^{-0.05} = 0.9512$.
+
+\ans{2d.}
+First spike when $J(1 - 0.95^k) \ge 1$, i.e.\ $0.95^k \le 1 - 1/J$, i.e.\ $k \ge \ln(1 - 1/J)/\ln 0.95$, with $\ln 0.95 = -0.05129$.
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item $x = 0$: $k \ge (-1.15)/(-0.05129) = 22.42$, so $k_{\mathrm{th}} = 23$ (check: $0.95^{22} = 0.3235 > 0.3166$ and $0.95^{23} = 0.3074 \le 0.3166$).
+After a spike at step $k$, $v$ is held at 0 for steps $k+1, k+2$, then climbs again, so the next spike is $k_{\mathrm{th}} + 2$ steps later. ISI $= 25$ steps $= 25$\,ms. Spikes occur at $23, 48, 73, \ldots$\,ms, and $23 + 25j \le 1000$ gives $j \le 39.08$, so there are $40$ spikes.
+\item $x = 1$: $k \ge (-0.2333)/(-0.05129) = 4.55$, so $k_{\mathrm{th}} = 5$. ISI $= 7$\,ms. Spikes occur at $5, 12, 19, \ldots$, and $5 + 7j \le 1000$ gives $j \le 142.1$, so there are $143$ spikes (142.9\,Hz).
+\end{itemize}
+\begin{result}
+$x = 0$: 23 steps to spike, ISI 25\,ms, \textbf{40 spikes} (matches). \quad $x = 1$: 5 steps, ISI 7\,ms, \textbf{143 spikes} (about 5\% low).
+\end{result}
+\textbf{Why $x = 1$ is hit harder.} Spike times are forced onto the 1\,ms grid: the threshold crossing is effectively rounded up to the next step. At $x = 1$ the true ISI is only 6.67\,ms, so rounding up by about 0.45\,ms (Euler crossing at 4.55 steps, recorded at 5) is a large fraction of the interval. At $x = 0$ the ISI is 25\,ms, so a sub-millisecond error matters little. Here it happens to cancel almost exactly: the Euler factor $0.95 < e^{-0.05}$ makes $v$ rise slightly too fast (crossing at 22.4 instead of 23.0 steps), and rounding up to 23 restores the exact value. In general, the error grows with firing rate.
+
+\textbf{Improvements} (any two): use a smaller $\Delta t$; use the exact exponential update $v_{k+1} = J + (v_k - J)e^{-\Delta t/\trc}$; linearly interpolate the threshold crossing within the step and carry the leftover fraction of a step into the refractory period (this is what Nengo does); and handle a refractory period that is not a whole number of steps.
+
+\ans{2e.}
+\begin{sketch}
+Horizontal axis 0--20\,ms, vertical axis $v$ from 0 to about 1.1, with a dashed threshold line at $v = 1$. The voltage rises along a concave curve (0.24, 0.47, 0.69, 0.89) and crosses 1 at 5\,ms. A spike tick is drawn at 5\,ms, then $v$ drops to 0 and is flat for 2\,ms (shade 5--7\,ms as refractory). The same ramp repeats with spikes at 12 and 19\,ms. Each cycle is identical because the input is constant.
+\end{sketch}
+\textbf{Clamping at 0.} If $J < 0$ (strongly negative $e x$, here $x < -0.44$), $\dot v < 0$ would push $v$ below rest without limit. A real membrane cannot go below the inhibitory reversal potential. Without the clamp, a long negative excursion of $x(t)$ would leave $v$ very negative, and the neuron would then take an unrealistically long time to fire after $x$ turns positive. With a white-noise input of \texttt{rms} 0.5, $x(t)$ often dips below $-0.44$, so for the $e = +1$ neuron the clamp matters during those dips. It keeps the neuron ready to respond quickly once $x$ rises again.
+
+%=====================================================================
+\qsec{3. Two neurons with opposite encoders}
+
+\ans{3a.}
+$J_{\pm} = 1.463 \pm 3.342\,x$. The $e = +1$ neuron at $x = 0.5$ gets $J = 1.463 + 1.671 = 3.134$, so
+\[
+G = \frac{1}{0.002 - 0.020\ln(1 - 1/3.134)} = \frac{1}{0.002 - 0.020\ln 0.6809} = \frac{1}{0.002 + 0.00769} = 103\ \mathrm{Hz}.
+\]
+At $x = -0.5$: $J = 1.463 - 1.671 = -0.208 \le 1$, so the rate is $0$. The $e = -1$ neuron is the mirror image.
+
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+$x$ & $-1$ & $-0.5$ & $0$ & $0.5$ & $1$ \\
+\midrule
+$e = +1$ (Hz) & 0 & 0 & 40.0 & 103 & 150 \\
+$e = -1$ (Hz) & 150 & 103 & 40.0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{sketch}
+Two mirror-image LIF curves crossing at $(0, 40)$\,Hz. Each starts at its intercept with a steep, concave rise (not a straight line) and reaches 150\,Hz at its preferred end.
+\end{sketch}
+
+\ans{3b.}
+Firing starts at $J = 1$. For $e = +1$: $1.463 + 3.342x = 1$, so $x = -0.463/3.342 = -0.139$. For $e = -1$, by symmetry, $x = +0.139$.
+\begin{result}
+$\xi_{+} = -0.139$ (fires for $x > -0.139$), $\xi_{-} = +0.139$ (fires for $x < 0.139$). Both fire for $|x| < 0.139$.
+\end{result}
+
+\ans{3c.}
+$x(t) = 0.5\sin(10\pi t)$ has period $0.2$\,s and amplitude 0.5. Both neurons fire when $|0.5\sin(10\pi t)| < 0.1387$, i.e.\ $|\sin(10\pi t)| < 0.2773$, i.e.\ $10\pi t$ within $\arcsin(0.2773) = 0.2810$\,rad of a multiple of $\pi$. That is within $0.2810/(10\pi) = 8.94$\,ms of each zero crossing ($t = 0, 0.1, 0.2, \ldots$).
+\begin{result}
+In the first period, both fire during $0$--$8.9$\,ms, $91.1$--$108.9$\,ms and $191.1$--$200$\,ms. The highest rate is $103$\,Hz, at the peaks $x = \pm 0.5$ ($t = 0.05$\,s for $e = +1$, $t = 0.15$\,s for $e = -1$).
+\end{result}
+\begin{sketch}
+Top panel: the sine wave, with dashed lines at $\pm 0.139$. Bottom panel: two rows of spike ticks. The $e = +1$ row is dense near $t = 0.05, 0.25$ (about 10\,ms spacing at the peaks) and empty during the negative half-cycle, apart from its edges. The $e = -1$ row is the complement, dense near $t = 0.15, 0.35$. Near each zero crossing both rows have sparse spikes (about 25\,ms apart, roughly 40\,Hz).
+\end{sketch}
+
+\ans{3d.}
+By symmetry the decoders satisfy $d_{-} = -d_{+}$, so
+\[
+\hat x = \big((d_{+}a_{+} + d_{-}a_{-}) * h\big) = d_{+}\big((a_{+} - a_{-}) * h\big) = (r * h'),\quad h' = d_{+}h.
+\]
+The decoder magnitude is absorbed into the filter that is being optimized, and each spike carries a sign set by which neuron fired.
+
+\textbf{What is lost:} a spike train is a sum of Dirac deltas, so $r(t) = 0$ between spikes. The unfiltered decoded value is zero almost everywhere and carries no information about $x(t)$ in the gaps. As $\Delta t \to 0$, coincident spikes become rarer, so the gaps dominate. The filter's job is to spread each spike's evidence over time to fill those gaps.
+
+%=====================================================================
+\qsec{4. The optimal linear filter}
+
+\ans{4a.}
+By Parseval, $\int (x - \hat x)^2 dt = \frac{1}{2\pi}\int |X(\omega) - R(\omega)H(\omega)|^2 d\omega$. Each frequency's term depends only on $H$ at that frequency, so minimizing the integral is the same as minimizing each $|X - RH|^2$ separately. (Convolution became multiplication, which decouples the frequencies.)
+
+At one $\omega$, average over windows:
+\[
+E = \big\langle (X - RH)(\overline{X} - \overline{R}\,\overline{H})\big\rangle = \langle|X|^2\rangle - H\langle \overline{X}R\rangle - \overline{H}\langle X\overline{R}\rangle + H\overline{H}\langle|R|^2\rangle.
+\]
+Treat $H$ and $\overline{H}$ as independent variables and set $\partial E/\partial\overline{H} = 0$:
+\[
+-\langle X\overline{R}\rangle + H\langle |R|^2\rangle = 0 \;\Rightarrow\; H(\omega) = \frac{\langle X\overline{R}\rangle}{\langle|R|^2\rangle}.
+\]
+$E$ is a convex quadratic ($\langle|R|^2\rangle > 0$), so this is the minimum. This is the frequency-domain counterpart of $d = (AA^\T)^{-1}Ax$: a cross-correlation divided by a power.
+
+\ans{4b.}
+\textbf{$\omega_1$:}
+$X\overline R$: window 1: $1\cdot 2 = 2$; window 2: $i(1 - i) = i + 1$. Average $= (3 + i)/2$.
+$|R|^2$: $4$ and $|1+i|^2 = 2$. Average $= 3$.
+\[
+H(\omega_1) = \frac{(3+i)/2}{3} = \frac{3+i}{6} = 0.500 + 0.167i.
+\]
+Single windows: window 1 gives $1/2 = 0.5$; window 2 gives $i/(1+i) = i(1-i)/2 = (1+i)/2 = 0.5 + 0.5i$. The two single-window estimates have the same gain but disagree on the phase. Each one fits its own window's noise perfectly (zero error on that window), which is overfitting. The pooled estimate weights each window by its response power ($|R|^2$) and is more robust. The magnitude is $|H| = \sqrt{0.25 + 0.0278} = 0.527$, close to the consistent gain of about 0.5.
+
+\textbf{$\omega_2$:} $X\overline R$: $8$, $2$; average $5$. $|R|^2$: $16$, $4$; average $10$. $H(\omega_2) = 0.500$.
+
+\textbf{$\omega_3$:} $X = 0$ in both windows, so $\langle X\overline R\rangle = 0$ and $H(\omega_3) = 0$ (with $\langle|R|^2\rangle = 0.25 \ne 0$).
+\begin{result}
+$H(\omega_1) = 0.500 + 0.167i$ (singles: $0.5$ and $0.5 + 0.5i$), $H(\omega_2) = 0.500$, $H(\omega_3) = 0$.
+\end{result}
+At $\omega_3$ the response has power but the signal has none, so all of that response power is spike noise. Passing it would only add error, so the optimal filter sets the gain to zero there. Since the signal is band-limited (low frequency) while spike noise is broadband, $H$ passes the signal band and suppresses everything above it: a \textbf{low-pass filter}.
+
+\ans{4c.}
+Convolution in frequency equals multiplication in time. Smoothing the cross- and power-spectra with a Gaussian $W(\omega)$ effectively multiplies the corresponding time-domain correlation functions by a Gaussian window $w(t)$ (a narrow $W$ in frequency is a wide $w$ in time). The result is an $h(t)$ that is confined to a finite time span and smooth. The noisy, long-lasting tails of the unsmoothed filter (which come from fitting the finite-data noise frequency by frequency) are removed.
+\begin{sketch}
+\textbf{Time domain} (axis about $-0.2$ to $0.2$\,s): a smooth bump with its peak near $t = 0$, width of order tens of ms (comparable to $1/(2\cdot 5\,\mathrm{Hz})$), small negative side-lobes, nonzero for $t < 0$ as well as $t > 0$, and tails decaying to 0.
+\textbf{Frequency domain} ($\omega$ in rad/s, 0 to about 200): $|H|$ roughly flat across the signal band up to about $2\pi\cdot 5 = 31$\,rad/s, then rolling off smoothly toward 0, without the jagged noise of the unwindowed estimate.
+\end{sketch}
+
+\ans{4d.}
+\begin{sketch}
+One set of axes with $\omega$ in rad/s. $|X|$: flat up to about 31\,rad/s (5\,Hz), then zero. $|R|$: large and roughly flat across a very wide range, extending far beyond the signal band (and much larger in amplitude). $|\hat X|$: follows $|X|$ in the band and is strongly attenuated above it.
+\end{sketch}
+$\hat X = RH$, so $|\hat X| = |R||H|$. $H$ is effectively the factor that turns $|R|$ into something matching $|X|$: $H \approx X\overline R/|R|^2$ is about $X/R$ where the signal and response are correlated, and about 0 where they are not.
+
+$|R|$ is broadband because a spike train is a sum of very narrow pulses. A single delta has a flat spectrum ($\mathcal F[\delta] = 1$), so spike trains have power at all frequencies up to about $1/\Delta t$, regardless of how slowly $x(t)$ varies. Only the low-frequency part of $R$ is correlated with $x$.
+
+\ans{4e.}
+Acausal means $h(t) \ne 0$ for $t < 0$: the estimate $\hat x(t) = \int r(t - t')h(t')dt'$ uses spikes from the future ($t' < 0$ means $r$ at times after $t$).
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item \textbf{Offline analysis:} fine. With recorded data, all spikes are available, so using future spikes gives the most accurate reconstruction. It is an upper bound on how much information the spikes carry.
+\item \textbf{Biology:} impossible. A synapse can only respond to spikes that have already arrived. A biological filter must be causal, which is why we use PSC models with $h(t) = 0$ for $t < 0$.
+\item \textbf{Compared with the Gaussian:} the Gaussian $e^{-t^2/\sigma^2}$ is also acausal (symmetric about 0) and is a fixed low-pass shape with one width parameter. The optimal filter is derived from the data. It can have negative lobes and an asymmetric shape and achieves lower error, but it is still non-causal and needs the signal's statistics to be computed.
+\end{itemize}
+
+%=====================================================================
+\qsec{5. Post-synaptic current filters}
+
+\ans{5a.}
+Substitute $u = t/\tau$: $c = \int_0^\infty (\tau u)^n e^{-u}\,\tau\,du = \tau^{n+1}\Gamma(n+1) = n!\,\tau^{n+1}$. (Alternatively, integrate by parts: $I_n = n\tau I_{n-1}$ with $I_0 = \tau$.)
+
+Peak: $\frac{d}{dt}\big(t^n e^{-t/\tau}\big) = t^{n-1}e^{-t/\tau}\big(n - t/\tau\big) = 0$, so $t^* = n\tau$ for $n \ge 1$. For $n = 0$ the function is decreasing, so the peak is at $t = 0$.
+
+Peak heights:
+\[
+n=0:\ \frac{1}{\tau}; \qquad n=1:\ \frac{\tau e^{-1}}{\tau^2} = \frac{1}{e\tau}; \qquad n=2:\ \frac{(2\tau)^2e^{-2}}{2\tau^3} = \frac{2e^{-2}}{\tau}.
+\]
+\begin{result}
+$c = n!\,\tau^{n+1}$; peak at $t = n\tau$. Peak heights: $1/\tau$, $1/(e\tau)$, $2e^{-2}/\tau$ (that is $1/\tau$, $0.368/\tau$, $0.271/\tau$).
+\end{result}
+
+\ans{5b.}
+With $\tau = 0.007$\,s: $h_0 = \frac{1}{\tau}e^{-t/\tau}$, $h_1 = \frac{t}{\tau^2}e^{-t/\tau}$, $h_2 = \frac{t^2}{2\tau^3}e^{-t/\tau}$. At $t = k\tau$ these are $\frac1\tau e^{-k}$, $\frac{k}{\tau}e^{-k}$ and $\frac{k^2}{2\tau}e^{-k}$, with $1/\tau = 142.9$\,s$^{-1}$, $e^{-1} = 0.3679$, $e^{-2} = 0.1353$, $e^{-3} = 0.0498$.
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$n$ & $t=0$ & $t=7$\,ms & $t=14$\,ms & $t=21$\,ms & peak time \\
+\midrule
+0 & 142.9 & 52.6 & 19.3 & 7.11 & 0 \\
+1 & 0 & 52.6 & 38.7 & 21.3 & 7\,ms \\
+2 & 0 & 26.3 & 38.7 & 32.0 & 14\,ms \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{sketch}
+$n = 0$: a jump to 143 at $t = 0$, then exponential decay. $n = 1$: starts at 0, rises to a peak of 52.6 at 7\,ms, then a long tail. $n = 2$: starts flat at 0 (zero slope), with a lower, later and broader peak of 38.7 at 14\,ms. All three enclose unit area. Note that the $n = 0$ and $n = 1$ curves cross at $t = \tau$.
+\end{sketch}
+
+\ans{5c.}
+Mean delay:
+\[
+\int_0^\infty t\,h(t)\,dt = \frac{1}{c_n}\int_0^\infty t^{n+1}e^{-t/\tau}dt = \frac{(n+1)!\,\tau^{n+2}}{n!\,\tau^{n+1}} = (n+1)\tau.
+\]
+Fourier transform for $n = 0$:
+\[
+H(\omega) = \frac1\tau\int_0^\infty e^{-t/\tau}e^{-i\omega t}dt = \frac1\tau\cdot\frac{1}{1/\tau + i\omega} = \frac{1}{1 + i\omega\tau}.
+\]
+$|H|^2 = 1/(1 + \omega^2\tau^2) = 1/2$ when $\omega\tau = 1$, so $\omega_c = 1/\tau$ and $f_c = 1/(2\pi\tau)$. (In general $H = (1 + i\omega\tau)^{-(n+1)}$.)
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+$\tau$ & 2\,ms & 5\,ms & 10\,ms & 20\,ms \\
+\midrule
+$f_c$ (Hz) & 79.6 & 31.8 & 15.9 & 7.96 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{result}
+Increasing $n$: (1) smoother $\hat x$, because high frequencies are suppressed faster ($|H| \propto \omega^{-(n+1)}$ at high $\omega$) and the spike onset is no longer a step; (2) more delay, since the mean delay $(n+1)\tau$ and the peak at $n\tau$ both move later.\\
+Increasing $\tau$: (1) less spike noise, because the cutoff $f_c$ is lower and more spikes are averaged together; (2) more lag and attenuation of fast signal content, which blurs or rounds off quick changes in $x$.
+\end{result}
+
+\ans{5d.}
+Each spike adds $d_k h(t - t_k) = d_k\frac{1}{\tau}e^{-(t - t_k)/\tau}$. At the spike time this is a jump of $d_k/\tau$, and every exponential term decays by the same factor $e^{-\Delta t/\tau}$ over any interval $\Delta t$, so the sum does too. This gives a simple recursion.
+
+Jump size: $0.01/0.007 = 1.429$. Decay over 5\,ms: $e^{-5/7} = 0.4895$.
+\begin{center}
+\begin{tabular}{lcl}
+\toprule
+$t$ & $\hat x$ & working \\
+\midrule
+$0^+$ & $+1.429$ & jump from $+$ spike \\
+5\,ms & $0.699$ & $1.429 \times 0.4895$ \\
+$10^-$ & $0.342$ & $0.699 \times 0.4895$ \\
+$10^+$ & $1.771$ & $0.342 + 1.429$ \\
+$15^-$ & $0.867$ & $1.771 \times 0.4895$ \\
+$15^+$ & $-0.562$ & $0.867 - 1.429$ ($-$ spike) \\
+$20^-$ & $-0.275$ & $-0.562 \times 0.4895$ \\
+$20^+$ & $1.154$ & $-0.275 + 1.429$ \\
+25\,ms & $0.565$ & $1.154 \times 0.4895$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+Check at 25\,ms by direct summation: $\frac{0.01}{0.007}\big(e^{-25/7} + e^{-15/7} + e^{-5/7} - e^{-10/7}\big) = 1.429(0.0281 + 0.1173 + 0.4895 - 0.2397) = 0.565$. \checkmark
+\begin{sketch}
+A saw-tooth: upward jumps of 1.43 at 0, 10 and 20\,ms, a downward jump at 15\,ms (going negative to $-0.56$), and exponential decay between events. After 25\,ms it keeps decaying toward 0: $0.565 \times e^{-5/7} = 0.277$ at 30\,ms.
+\end{sketch}
+
+\ans{5e.}
+The 2\,Hz decoding will look better (tracks more closely, relatively less ripple), even with the same filter and decoders.
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item \textbf{Lag relative to timescale:} the mean delay is $\tau = 7$\,ms. For a 5\,Hz-limited signal the fastest features change over about 50--100\,ms, so a 7\,ms lag is a noticeable fraction of that. For 2\,Hz the features change over about 250\,ms, so the same lag is nearly invisible.
+\item \textbf{Cutoff:} $f_c = 1/(2\pi\cdot 0.007) = 22.7$\,Hz. Both signals are below this, but the 2\,Hz signal sits deeper in the passband, so it is passed with less attenuation and phase shift.
+\item \textbf{Spike averaging:} a slowly varying $x$ stays at a value long enough for many spikes to report it, so the filtered estimate settles before $x$ moves on.
+\end{itemize}
+The spike noise ripple itself has about the same size in both cases (same filter, same rates), so it is the signal-tracking error that improves.
+
+%=====================================================================
+\qsec{6. Population decoding of a time-varying signal}
+
+\ans{6a.}
+Subtract the two conditions: $J_{\max} - 1 = \alpha(r - \xi)$, so
+\[
+\alpha = \frac{J_{\max} - 1}{r - \xi},\qquad \Jb = 1 - \alpha\xi.
+\]
+With $J_{\max} = 4.805$ (from 2a), $\xi = 0.5$, $r = 2$: $\alpha = 3.805/1.5 = 2.537$ and $\Jb = 1 - 2.537(0.5) = -0.268$.
+
+Equivalence: let $x' = x/r$ with intercept $\xi' = \xi/r = 0.25$ and maximum at $x' = 1$. Then $\alpha' = (J_{\max} - 1)/(1 - \xi') = 3.805/0.75 = 5.074 = r\alpha$, and $\Jb{}' = 1 - 5.074(0.25) = -0.268 = \Jb$. Since $\alpha' x' = r\alpha \cdot x/r = \alpha x$, the currents are identical.
+\begin{result}
+$\alpha = 2.54$, $\Jb = -0.268$. Equivalent radius-1 neuron: gain $\alpha' = r\alpha = 5.07$ applied to $x/r$, same bias.
+\end{result}
+
+\ans{6b.}
+\[
+AA^\T = \begin{bmatrix} 0 + 2500 + 22500 & 0 + 2500 + 0 \\ 2500 & 22500 + 2500 + 0\end{bmatrix} = \begin{bmatrix} 25000 & 2500 \\ 2500 & 25000\end{bmatrix},\quad
+Ax = \begin{bmatrix} 0 + 0 + 300 \\ -300 + 0 + 0\end{bmatrix} = \begin{bmatrix} 300 \\ -300\end{bmatrix}.
+\]
+The problem is antisymmetric, so try $d = (\delta, -\delta)$. The first row gives $25000\delta - 2500\delta = 300$, so $\delta = 300/22500 = 0.01333$.
+
+Noise-aware: $N\sigma^2 = 3 \times 20^2 = 1200$, which adds 1200 to the diagonal. Then $(26200 - 2500)\delta = 300$, so $\delta = 300/23700 = 0.01266$.
+
+Decoded values $\hat x_k = d_1 a_{1k} + d_2 a_{2k}$:
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item Unregularized: $(-150\delta, 0, 150\delta) = (-2.00, 0, 2.00)$. Exact, RMSE $= 0$.
+\item Noise-aware: $(-1.899, 0, 1.899)$, errors $(-0.101, 0, 0.101)$, RMSE $= \sqrt{2(0.1013)^2/3} = 0.0827$.
+\end{itemize}
+Units: $x$ is dimensionless and $A$ is in Hz, so $d$ has units of $1/\mathrm{Hz} = $\,s. The decoder converts spikes per second into represented value.
+\begin{result}
+$d = (0.0133, -0.0133)$\,s, RMSE $0$. \quad $d_{\mathrm{reg}} = (0.0127, -0.0127)$\,s, $\hat x = (-1.90, 0, 1.90)$, RMSE $0.0827$. Regularization shrinks the decoders and slightly under-reaches the endpoints in exchange for robustness to activity noise.
+\end{result}
+
+\ans{6c.}
+The rate-mode decoders were fitted to activities in Hz, so whatever you feed them in spiking mode must also be in Hz. Filtering the continuous spike train $\sum_k\delta(t - t_k)$ with a unit-area filter gives $\sum_k h(t - t_k)$, which averages to the firing rate in Hz. In discrete time, a delta must have height $1/\Delta t$ to keep unit area (lecture notes, ``Discrete Dirac-$\delta$''). If the spike array instead stores 1, and the filter is normalized so that its samples sum to 1 (the discrete equivalent of unit area), the filtered train comes out as rate $\times\,\Delta t$ (spikes per step, not per second), which is too small by a factor of 1000 at $\Delta t = 1$\,ms. One factor of $1/\Delta t$ has to appear somewhere: on the spikes, on the filter, or on the decoded output. (If your filter samples are $h(t_k)$ in s$^{-1}$, so they sum to $1/\Delta t$, then the factor is already included. Check your convention once.)
+
+\textbf{Sanity check:} if neuron 1 fires steadily at 150\,Hz and neuron 2 is silent, the filtered trains settle to about $(150, 0)$\,Hz with a ripple, so
+\[
+\hat x \approx 0.01266 \times 150 = 1.90\ (\text{noise-aware}),\ \text{or } 2.00\ (\text{unregularized}).
+\]
+A result near $0.0019$ or $1900$ means a missing or doubled $\Delta t$ factor.
+
+\ans{6d.}
+\textbf{Why spiking RMSE is larger:}
+\begin{itemize}[leftmargin=1.5em,itemsep=1pt]
+\item Spike-train noise: the filtered spike train fluctuates around the rate (the ripple from discrete spikes), which is not exactly the Gaussian noise of standard deviation $\sigma$ assumed when fitting.
+\item Filter lag: $\hat x(t)$ is delayed by about $\tau$ relative to $x(t)$, so a fast-changing signal has errors even if the representation is perfect.
+\item Low-pass attenuation of the faster signal components.
+\item The rate approximation $G$ itself is only exact for constant input.
+\end{itemize}
+\textbf{$\tau$ tradeoff for a 5\,Hz-limited signal:} at $\tau = 2$\,ms, $f_c = 80$\,Hz. There is very little lag, and the 5\,Hz content passes with $|H| = 0.998$, but most spike noise also passes, so $\hat x$ is very jagged. At $\tau = 20$\,ms, $f_c = 8$\,Hz. It is smooth, but the lag is 20\,ms and $|H(5\,\mathrm{Hz})| = 1/\sqrt{1 + (2\pi\cdot5\cdot0.02)^2} = 0.85$, so the fast parts of the signal are attenuated by about 15\% and shifted. A middle value (about 5--10\,ms) minimizes total RMSE.
+
+\textbf{Scaling with $n$:} spike noise from independent neurons averages out, so its mean-squared error falls like $1/n$. RMSE falls like $1/\sqrt n$, a slope of about $-\tfrac12$ on log-log axes, until filter lag and distortion (which do not shrink with $n$ in the same way) set a floor. Over $n = 8 \to 256$ ($32\times$) expect RMSE to drop by roughly $\sqrt{32} \approx 5.7\times$, flattening at large $n$.
+
+%=====================================================================
+\qsec{7. Feedforward transformations}
+
+\ans{7a.}
+\[
+AA^\T = \begin{bmatrix} 0+1+9 & 0+1+0 \\ 1 & 9+1+0\end{bmatrix} = \begin{bmatrix} 10 & 1 \\ 1 & 10\end{bmatrix},\qquad (AA^\T)^{-1} = \frac{1}{99}\begin{bmatrix} 10 & -1 \\ -1 & 10\end{bmatrix}.
+\]
+Right-hand sides, with $x = (-1, 0, 1)$, $y = 2x + 1 = (-1, 1, 3)$, $\mathbf 1 = (1, 1, 1)$:
+\[
+Ax = \begin{bmatrix} 3 \\ -3 \end{bmatrix},\quad Ay = \begin{bmatrix} 0 + 1 + 9 \\ -3 + 1 + 0 \end{bmatrix} = \begin{bmatrix} 10 \\ -2 \end{bmatrix},\quad A\mathbf 1 = \begin{bmatrix} 4 \\ 4\end{bmatrix}.
+\]
+Decoders:
+\[
+d = \tfrac{1}{99}(30 + 3,\ -3 - 30) = (0.333, -0.333),\qquad
+d^{f} = \tfrac{1}{99}(100 + 2,\ -10 - 20) = (1.030, -0.303),
+\]
+\[
+d^{1} = \tfrac{1}{99}(40 - 4,\ -4 + 40) = (0.364, 0.364).
+\]
+Check: $2d + d^1 = (0.667 + 0.364,\ -0.667 + 0.364) = (1.030, -0.303) = d^f$. \checkmark
+
+Decoded output $\hat y_k = 1.030\,a_{1k} - 0.303\,a_{2k}$:
+\[
+\hat y = (0 - 0.909,\ 1.030 - 0.303,\ 3.091 - 0) = (-0.909,\ 0.727,\ 3.091).
+\]
+Errors $y - \hat y = (-0.091,\ 0.273,\ -0.091)$, and RMSE $= \sqrt{(0.00826 + 0.0744 + 0.00826)/3} = \sqrt{0.0303} = 0.174$.
+\begin{result}
+$d = (0.333, -0.333)$, $d^f = (1.03, -0.303)$, $d^1 = (0.364, 0.364)$, $d^f = 2d + d^1$. $\hat y = (-0.909, 0.727, 3.09)$, RMSE $= 0.174$.
+\end{result}
+\textbf{Why $2d$ is not enough:} $2d^\T A = 2\hat x = (-2, 0, 2)$, which is $2x$ with no offset. The $+1$ is an affine term, and it must be decoded too: the population has to ``decode a constant'' from its activities, which is what $d^1$ does (here imperfectly, since the two activities do not sum to a constant across $x$). \textbf{Linearity in the target:} $d^Y = (AA^\T + N\sigma^2 I)^{-1}AY^\T$ is a fixed matrix times $Y$, so the decoder for $aY_1 + bY_2$ is $a\,d^{Y_1} + b\,d^{Y_2}$. The function $2x + 1$ is $2\cdot x + 1\cdot\mathbf 1$, so its decoder is $2d + d^1$. (The errors of $d^f$ and $d^1$ are identical, because $d$ is exact here.)
+
+\ans{7b.}
+$w_{ij} = \alpha_i e_i d^f_j$, so row $i$ is $\alpha_i e_i \times (1.030, -0.303)$:
+\[
+W = \begin{bmatrix} 2(+1) \\ 1(-1) \\ 3(+1)\end{bmatrix}\begin{bmatrix} 1.030 & -0.303\end{bmatrix} = \begin{bmatrix} 2.061 & -0.606 \\ -1.030 & 0.303 \\ 3.091 & -0.909\end{bmatrix}.
+\]
+Every row is a multiple of $(d^f)^\T$, so $\operatorname{rank} W = 1$ (equal to the represented dimension $d = 1$).
+
+Currents for $a = (1, 1)$: $Wa = (2.061 - 0.606,\ -1.030 + 0.303,\ 3.091 - 0.909) = (1.455, -0.727, 2.182)$. Equivalently, $\alpha_i e_i \hat y$ with $\hat y = 0.727$ (the decoded value at $x = 0$ from 7a).
+\begin{result}
+$W$ as above, rank 1. Input currents (excluding bias): $(1.45, -0.727, 2.18)$.
+\end{result}
+\textbf{Dale's principle} says each pre-neuron releases one transmitter, so all of its outgoing weights should have the same sign. Column 1 (pre-neuron 1) has $+, -, +$, and column 2 has $-, +, -$. Each pre-neuron excites some post-neurons and inhibits others, so this $W$ \textbf{violates} Dale's principle. Mixed signs arise naturally from $W = ED$, because encoders and decoders take both signs. (Fixing it needs extra structure, such as separate excitatory and inhibitory populations or constrained solvers.)
+
+\ans{7c.}
+Full matrix: $Wa$ needs $m \times n = 200 \times 200 = 40{,}000$ multiplications per step. Factored: decode $\hat y = Da$ ($d \cdot n = 200$) and then encode $E\hat y$ ($m \cdot d = 200$), for $400$ total. That is $100\times$ fewer: $\mathcal O(d(n+m))$ versus $\mathcal O(nm)$. Nengo exploits the low rank of $W$ (rank $d \ll n$): the factored form is mathematically identical and far cheaper, and it also needs far less memory ($d(n+m)$ numbers instead of $nm$).
+
+\ans{7d.}
+\begin{sketch}
+Horizontal axis 0--1\,s. Ideal $x(t)$: a straight line from $-1$ to $0$. Ideal $y(t) = 2t - 1$: a straight line from $-1$ to $+1$ (twice as steep). $\hat y(t)$: starts near 0 at $t = 0$ (the filters start empty) and rises to meet the line within a few tens of ms; after that it runs parallel to the ideal line but shifted right by about 10\,ms, with small jagged ripple. It may flatten or deviate slightly near $y = \pm 1$, at the edges of the radius.
+\end{sketch}
+\textbf{Sources of deviation:}
+\begin{enumerate}[leftmargin=1.8em,itemsep=1pt]
+\item \textbf{Synaptic lag/transient:} each $n = 0$ filter delays by about $\tau$ on average. The connection into the $y$ group and the output decoding filter each contribute one $\tau$, so the total is about $2\tau = 10$\,ms. This shows as a horizontal offset and as the start-up transient near $t = 0$.
+\item \textbf{Spike noise:} ripple about the trend everywhere, from the discrete spikes passing through a short filter.
+\item \textbf{Decoding distortion:} a static error from approximating $2x + 1$ (and then $y$) with finitely many tuning curves. It is largest near the edges of the range ($x \approx -1$, and $y \approx \pm 1$, where fewer neurons are active or near saturation).
+\end{enumerate}
+\textbf{Step response:} at each step, $\hat y$ moves to the new level along a smoothed S-shaped curve (two cascaded exponentials). It takes about 2--3$\tau$ (roughly 10--20\,ms) to mostly settle, then sits at the new level with ripple, with no overshoot for $n = 0$ filters. Within each 0.1\,s hold it has plenty of time to settle.
+
+\ans{7e.}
+\[
+J_i = \alpha_i\, e_i\big(D^{2y}a_y + D^{0.5x}a_x\big) + \Jb_i \approx \alpha_i\, e_i\,(2y + 0.5x) + \Jb_i.
+\]
+The two decoded contributions simply add in the post-neuron's input current (the PSCs sum).
+
+$f(x) = 0.5x$ is linear with no constant term, so by linearity in the target, $D^{0.5x} = 0.5\,D^{x}$ exactly (and likewise $D^{2y} = 2D^{y}$). In 7a, the affine $+1$ needed the extra constant decoder $d^1$.
+
+Bound: $|z| \le 2|y| + 0.5|x| \le 2(0.5) + 0.5(1) = 1.5$. This is crude because the two peaks do not line up in time.
+\[
+z(0.125) = \sin(\pi/4) + 0.5\cos(3\pi/8) = 0.707 + 0.191 = 0.898,\qquad z(0.25) = 1 + 0.5\cos(3\pi/4) = 1 - 0.354 = 0.646.
+\]
+The true maximum is $|z| \approx 0.899$ (near $t = 0.127$\,s, with the matching minimum near $t = 0.873$\,s), so $z$ stays inside radius 1 and the sinusoidal case works.
+
+Random inputs, assuming independence: $\mathrm{Var}(z) = 4\,\mathrm{Var}(y) + 0.25\,\mathrm{Var}(x) = 4(0.25) + 0.25(1) = 1.25$, so $\mathrm{RMS}(z) \approx 1.12 > 1$. $z$ is outside the radius much of the time (and $x$, with \texttt{rms} 1, also exceeds its own radius 1 often).
+\begin{result}
+Sinusoids: max $|z| \approx 0.90 < 1$, so this is fine. Random: $\mathrm{RMS}(z) \approx 1.12$, so it frequently exceeds the radius.
+\end{result}
+\textbf{When $z$ exceeds the radius:} neurons are pushed beyond the range where their tuning was set and the decoders were fitted. Many saturate or approach their maximum rates, and the decoders were never optimized there, so $\hat z$ flattens out or clips, underestimating large $|z|$ (and errors grow quickly). \textbf{Fix:} give the $z$ population a larger radius, about 2--3 times the RMS (for example $r = 3$ covers almost all values), or scale the signals down before the connection and back up afterwards. In both cases the representation is spread over a wider range, at some cost in precision per unit of $z$.
+
+\ans{7f.}
+Separate populations can only feed $f(x) + g(y)$ into the target: each connection's decoder sees only its own population's activity, and currents add linearly (7e). $xy$ cannot be written as $f(x) + g(y)$ (for example, its mixed derivative $\partial^2(xy)/\partial x\partial y = 1 \ne 0$, whereas any $f(x) + g(y)$ has zero mixed derivative). The fix is to represent both values in one \textbf{two-dimensional population} encoding $\vec v = (x, y)$, with encoders spread over the plane, so each neuron's activity depends jointly on $x$ and $y$. Then solve for a function decoder $D^{xy}$ with targets $Y_k = x_k y_k$ and project into the $z$ population. (Dendritic computation, which uses nonlinear interactions within a neuron's dendrites, is an alternative mentioned in lecture.)
+
+\end{document}

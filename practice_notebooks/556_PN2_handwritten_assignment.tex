@@ -1,0 +1,205 @@
+\documentclass[10pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Handwritten Assignment 2}
+\rhead{Temporal representation and transformations}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\qsec}[1]{\vspace{8pt}{\large\bfseries #1}\par\vspace{2pt}}
+
+\newlist{parts}{description}{1}
+\setlist[parts]{leftmargin=2.1em,labelwidth=1.8em,labelsep=0.3em,itemsep=3pt,font=\normalfont\bfseries}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Handwritten Assignment 2}\\[2pt]
+{\large\bfseries Temporal Representation and Feedforward Transformations}
+\end{center}
+
+\textbf{Scope.} This is a pen-and-paper counterpart to PN2. It covers band-limited white noise and the Fourier domain, LIF spike generation, decoding spike trains, the optimal linear filter, post-synaptic current (PSC) filters, population decoding of time-varying signals, and feedforward transformations between populations (Lectures 2--5).
+
+\textbf{Instructions.} Write all answers by hand on separate paper; attach your sketches and calculations in question order. Show your reasoning, label axes and units, and give numerical answers to three significant figures. A basic calculator is permitted for logarithms and exponentials. No programming or computer-generated plots are needed.
+
+\textbf{Conventions.} Unless stated otherwise, $\tref = 0.002$\,s and $\trc = 0.020$\,s. The LIF current is $J(t) = \alpha\, e\, x(t) + \Jb$ with $e \in \{-1,+1\}$, the normalized threshold is $v_{\mathrm{th}} = 1$, and the rate approximation is
+\[
+G(J) = \begin{cases} \big[\tref - \trc \ln(1 - 1/J)\big]^{-1}, & J > 1,\\ 0, & J \le 1. \end{cases}
+\]
+A spike train is $a(t) = \sum_k \delta(t - t_k)$. In activity matrices, rows are neurons and columns are samples.
+
+%---------------------------------------------------------------------
+\qsec{1. Band-limited white noise and the Fourier domain}
+PN2 builds $x(t)$ by sampling Fourier coefficients $X(\omega)$, zeroing those above a frequency limit, and inverse-transforming. For a signal of length $T$ sampled at $\Delta t$, the coefficients sit at $\omega_k = k\,\Delta\omega$ with $\Delta\omega = 2\pi/T$.
+
+\begin{parts}
+\item[1a.] For $T = 1$\,s, $\Delta t = 1$\,ms and \texttt{limit} $= 10$\,Hz, how many time samples are there, what is the spacing $\Delta\omega$ (in rad/s), and what is the highest frequency representable (in Hz and rad/s)? List the frequencies $\omega_k$ (in rad/s) whose coefficients may be nonzero, and state how many independent random real numbers are needed if the DC term is set to zero.
+
+\item[1b.] The notebook requires $X(-\omega) = \overline{X(\omega)}$, whereas a quick reading of the lecture notes suggests $X(-\omega) = X(\omega)$. Show, using $e^{i\omega t}$ and $e^{-i\omega t}$, that conjugate symmetry is what makes $x(t)$ real. Which statement is correct for a general real signal, and when do the two agree?
+
+\item[1c.] A toy signal on $T = 1$\,s has only four nonzero coefficients, using the series convention $x(t) = \sum_k X(\omega_k)\, e^{i\omega_k t}$:
+\[
+X(\pm 2\pi) = 1 \mp i, \qquad X(\pm 4\pi) = \pm\tfrac{1}{2} i .
+\]
+Write $x(t)$ as a sum of real sines and cosines. Give the amplitude and phase of the 1\,Hz component. Evaluate $x(t)$ at $t = 0, 0.125, 0.25, 0.375, 0.5$\,s and sketch one period.
+
+\item[1d.] Using Parseval's relation, $\frac{1}{T}\int_0^T x(t)^2\,dt = \sum_k |X(\omega_k)|^2$, find the RMS of the toy signal. By what factor must it be scaled for \texttt{rms} $= 0.5$? Does rescaling change the shape of $|X(\omega)|$?
+
+\item[1e.] Sketch the expected average $|X(\omega)|$ over 100 signals with \texttt{limit} $= 10$\,Hz, marking the cutoff in rad/s. Explain why a single signal's spectrum looks ragged while the average is flat, and how the time-domain plots for \texttt{limit} $= 5, 10, 20$\,Hz differ if all have \texttt{rms} $= 0.5$.
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{2. A single spiking LIF neuron}
+The membrane obeys $\dot v = (J - v)/\trc$ between spikes. Use $e = +1$ and require $G = 40$\,Hz at $x = 0$ and $G = 150$\,Hz at $x = 1$.
+
+\begin{parts}
+\item[2a.] Invert $G$ to get $J(a) = \big[1 - e^{(\tref - 1/a)/\trc}\big]^{-1}$. Compute $J$ at 40\,Hz and at 150\,Hz, then $\alpha$ and $\Jb$. Use $e^{-1.15} \approx 0.3166$ and $e^{-0.2333} \approx 0.7919$.
+
+\item[2b.] For constant $J > 1$ starting from $v(0) = 0$, solve the membrane equation and derive the time to threshold $t_{\mathrm{th}} = -\trc\ln(1 - 1/J)$. Compute $t_{\mathrm{th}}$ and the exact inter-spike interval for $x = 0$ and $x = 1$.
+
+\item[2c.] PN2 uses forward Euler with $\Delta t = 1$\,ms: $v_{k+1} = v_k + \frac{\Delta t}{\trc}(J - v_k)$. Assume a spike is recorded at the first step $k$ with $v_k \ge 1$, after which $v$ is reset to 0 and held at 0 for the next two steps ($\tref = 2\Delta t$). For $x = 1$, tabulate $v_1, \dots, v_5$ starting from $v_0 = 0$. Show that in general $v_k = J\,(1 - 0.95^k)$ until the first spike.
+
+\item[2d.] Find the number of Euler steps to the first spike for $x = 0$ and $x = 1$, then the simulated inter-spike interval and the number of spikes in 1\,s for each (the first spike occurs at step $k_{\mathrm{th}}$). Compare with 40 and 150. Which input is affected more, and why? Name two changes to the simulation that would improve the agreement.
+
+\item[2e.] Sketch $v(t)$ for $x = 1$ over the first 20\,ms, marking spikes, resets and refractory periods. Why does the simulation clamp $v$ at 0 from below, and when would that clamp matter for a white-noise input?
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{3. Two neurons with opposite encoders}
+Keep the parameters of Question 2 but add a second neuron with $e = -1$.
+
+\begin{parts}
+\item[3a.] Compute both neurons' rates at $x = -1, -0.5, 0, 0.5, 1$ and sketch both tuning curves on one set of axes.
+
+\item[3b.] Find the $x$-intercept $\xi$ of each neuron. Over what range of $x$ do both neurons fire?
+
+\item[3c.] For $x(t) = \tfrac12\sin(10\pi t)$, sketch $x(t)$ and a spike raster for both neurons over $0 \le t \le 0.4$\,s. Find the times in the first period during which both neurons fire, and the highest rate reached by either neuron.
+
+\item[3d.] The optimal-filter section uses the signed response $r(t) = a_{+}(t) - a_{-}(t)$. Explain why this is justified for this symmetric pair (relate it to the decoders $d_{+}$ and $d_{-}$), and what information about the input is lost between spikes when $\Delta t$ is small.
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{4. The optimal linear filter}
+We want $\hat x(t) = (r * h)(t)$ to minimize $\int (x(t) - \hat x(t))^2\,dt$. In the frequency domain $\hat X(\omega) = R(\omega)H(\omega)$.
+
+\begin{parts}
+\item[4a.] Explain why the time-domain problem reduces to independent problems at each $\omega$. Minimize $\big\langle |X - RH|^2 \big\rangle$ at a single frequency to obtain
+\[
+H(\omega) = \frac{\langle X(\omega)\,\overline{R(\omega)}\rangle}{\langle |R(\omega)|^2 \rangle}.
+\]
+(Hint: expand the square, then set the derivative with respect to $\overline{H}$ to zero, treating $H$ and $\overline{H}$ as independent.)
+
+\item[4b.] Two analysis windows give the following coefficients at three frequencies:
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Window 1} & \multicolumn{2}{c}{Window 2} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Frequency & $X$ & $R$ & $X$ & $R$ \\
+\midrule
+$\omega_1$ (inside the signal band) & $1$ & $2$ & $i$ & $1+i$ \\
+$\omega_2$ (inside the signal band) & $2$ & $4$ & $1$ & $2$ \\
+$\omega_3$ (outside the signal band) & $0$ & $0.5$ & $0$ & $-0.5i$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Compute $H$ at each frequency using both windows. At $\omega_1$, also compute $H$ from each window alone and comment. Why is $H(\omega_3) = 0$, and what does this imply about the filter's overall character?
+
+\item[4c.] The windowed estimate replaces each average by a convolution with a Gaussian $W(\omega)$: $H = \big[(X\overline{R}) * W\big] / \big[|R|^2 * W\big]$. What does smoothing $H$ in frequency do to $h(t)$ in time? Sketch the typical improved $h(t)$ and $|H(\omega)|$ for the 5\,Hz input of PN2~\S3c, labelling the axes.
+
+\item[4d.] Sketch the three spectra $|X(\omega)|$, $|R(\omega)|$ and $|\hat X(\omega)|$ on one set of axes. Relate them to $H$ using $\hat X = RH$, and explain why $|R|$ has substantial power far above the signal band.
+
+\item[4e.] The optimal $h(t)$ is acausal. What does that mean, why is it acceptable for offline analysis, and why can it not describe a biological synapse? Compare it with the symmetric Gaussian filter $h(t) \propto e^{-t^2/\sigma^2}$ from lecture.
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{5. Post-synaptic current filters}
+The PSC filter is $h(t) = c^{-1}\,t^n e^{-t/\tau}$ for $t \ge 0$ (zero otherwise), with $c = \int_0^\infty t^n e^{-t/\tau}\,dt$.
+
+\begin{parts}
+\item[5a.] Show that $c = n!\,\tau^{\,n+1}$ (use repeated integration by parts or the Gamma function). Then show that for $n \ge 1$ the peak occurs at $t = n\tau$, and find the peak height for $n = 0, 1, 2$.
+
+\item[5b.] For $\tau = 7$\,ms, complete the table (in s$^{-1}$) and sketch all three curves on one set of axes.
+
+\begin{center}
+\begin{tabular}{cccccc}
+\toprule
+$n$ & $t=0$ & $t=7$\,ms & $t=14$\,ms & $t=21$\,ms & peak time \\
+\midrule
+0 & & & & & \\
+1 & & & & & \\
+2 & & & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\item[5c.] Show that the mean delay $\int_0^\infty t\,h(t)\,dt = (n+1)\tau$. Show that the Fourier transform of the $n = 0$ filter is $H(\omega) = 1/(1 + i\omega\tau)$ and that its $-3$\,dB cutoff is $f_c = 1/(2\pi\tau)$. Compute $f_c$ for $\tau = 2, 5, 10, 20$\,ms. Then state the two effects of increasing $n$, and the two effects of increasing $\tau$, on $\hat x(t)$.
+
+\item[5d.] Time-domain convolution by hand. Two neurons have decoders $d_{+} = +0.01$ and $d_{-} = -0.01$. Neuron $+$ spikes at $t = 0, 10, 20$\,ms and neuron $-$ spikes at $t = 15$\,ms. Using $n = 0$, $\tau = 7$\,ms, $\hat x(t) = \sum_k d_k\, h(t - t_k)$ where $d_k$ is the decoder of the neuron that fired spike $k$. Show that $\hat x$ jumps by $d/\tau$ at each spike and decays by a factor $e^{-\Delta t/\tau}$ between spikes. Compute $\hat x$ at $t = 5$\,ms, just before and just after $t = 10, 15, 20$\,ms, and at $t = 25$\,ms. Sketch $\hat x(t)$ for $0 \le t \le 30$\,ms.
+
+\item[5e.] PN2 decodes a 5\,Hz-limited signal and then, with the same filter and decoders, a 2\,Hz-limited signal. Predict which decoding looks better and explain using your lag and cutoff results from 5c. Use the ratio of the filter delay to the signal's timescale in your argument.
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{6. Population decoding of a time-varying signal}
+PN2 uses 20 LIF neurons with radius $r = 2$: the maximum rate occurs at $e x = r$ and intercepts lie in $[-2, 2]$.
+
+\begin{parts}
+\item[6a.] With $J_{\max} = \alpha r + \Jb$ and $1 = \alpha\xi + \Jb$, derive $\alpha$ and $\Jb$ for general $r$. For $a_{\max} = 150$\,Hz, $\xi = 0.5$, $e = +1$, $r = 2$, compute them, reusing $J_{\max}$ from 2a. Show that this is equivalent to encoding $x/r$ with a radius-1 neuron, and give that neuron's gain.
+
+\item[6b.] Consider a two-neuron population with three samples $x = (-2, 0, 2)$ and rate-mode activities (Hz)
+\[
+A = \begin{bmatrix} 0 & 50 & 150 \\ 150 & 50 & 0 \end{bmatrix}.
+\]
+Compute the unregularized decoder $d$ and the noise-aware decoder from $d = (AA^\T + N\sigma^2 I)^{-1}Ax$ with $\sigma = 0.1 \times 200 = 20$\,Hz and $N = 3$. What are the units of $d$? Give $\hat x$ and the RMSE for both decoders on the clean $A$.
+
+\item[6c.] For the spiking simulation, a spike is stored as the value 1 in the time step where it occurs. Explain why dividing the spike array by $\Delta t$ (or equivalently scaling the decoded output by $1/\Delta t$, depending on where you put the factor) is needed before applying rate-mode decoders. Check your reasoning: if neuron 1 fires steadily at 150\,Hz and neuron 2 is silent, what should the filtered, decoded value settle to?
+
+\item[6d.] Explain why the spiking RMSE from PN2~\S6c is larger than the rate-mode RMSE from \S6b. Describe the tradeoff in choosing $\tau$ (for example 2\,ms versus 20\,ms) for decoding a 5\,Hz-limited signal. How would you expect the spiking RMSE to scale as $n$ grows from 8 to 256?
+\end{parts}
+
+%---------------------------------------------------------------------
+\qsec{7. Feedforward transformations}
+The NEF computes $y = f(x)$ in a connection by solving for a function decoder $D^f$ using targets $Y$ in place of $X$, then re-encoding. The weights are $w_{ij} = \alpha_i\, e_i\, d^f_j$, that is $W = E D^f$ with the gains folded into $E$.
+
+\begin{parts}
+\item[7a.] A pre-population has three samples $x = (-1, 0, 1)$ and normalized activities
+\[
+A = \begin{bmatrix} 0 & 1 & 3 \\ 3 & 1 & 0 \end{bmatrix}.
+\]
+Using the unregularized normal equations, compute the identity decoder $d$, the decoder $d^{f}$ for $f(x) = 2x + 1$, and the decoder $d^{1}$ for the constant function $f(x) = 1$. Verify that $d^{f} = 2d + d^{1}$. Compute $\hat y = (d^f)^\T A$, the errors and the RMSE. Explain why $2d$ alone is not a decoder for $2x + 1$, and why least-squares decoders are linear in the target.
+
+\item[7b.] A post-population of three neurons has gains $\alpha = (2, 1, 3)$ and encoders $e = (+1, -1, +1)$. Compute the $3 \times 2$ weight matrix $W$ for the connection in 7a and state its rank. Using pre-activities $(1, 1)$ (that is, $x = 0$), compute each post-neuron's input current, excluding bias. Is Dale's principle respected by this $W$? Explain.
+
+\item[7c.] For $n = m = 200$ neurons representing a scalar, compare the number of multiplications per time step for the full matrix $W$ and for factored decode-then-encode. Why does Nengo prefer the factored form?
+
+\item[7d.] PN2~\S7.1 feeds the ramp $x(t) = t - 1$ for $0 \le t \le 1$\,s through $x \to y = 2x + 1$. Sketch the ideal $x(t)$ and $y(t)$ and a realistic $\hat y(t)$. Identify three sources of deviation and say where on the plot each appears. Roughly how much lag does a two-stage network with $\tau = 5$\,ms ($n = 0$) introduce? For the random step input in \S7.1b, sketch how $\hat y$ responds to one step.
+
+\item[7e.] PN2~\S7.2 computes $z = 2y + 0.5x$ from separate $x$ and $y$ populations. Write the current into the $i$-th $z$ neuron in terms of both decoders, and explain why $D^{0.5x} = 0.5\,D$ is exact here, unlike in 7a. For $x = \cos(3\pi t)$ and $y = 0.5\sin(2\pi t)$, show that $|z| \le 1.5$ is a crude bound, then evaluate $z$ at $t = 0.125$ and $t = 0.25$\,s to check whether $z$ stays inside the radius 1 (its true maximum is near $t = 0.125$\,s). For the random inputs of \S7.2b ($x$ with \texttt{rms} $= 1$, $y$ with \texttt{rms} $= 0.5$), estimate the RMS of $z$, assuming independence. What happens when $z$ exceeds the $z$ population's radius, and how would you fix it?
+
+\item[7f.] Explain why $z = xy$ cannot be computed by summing decoded outputs from separate $x$ and $y$ populations, and describe the network that can compute it.
+\end{parts}
+
+\vspace{10pt}
+\textbf{Submission checklist:} Fourier-coefficient derivations and the toy-signal sketch; LIF gain/bias and the Euler table; the two-neuron tuning and raster sketches; the optimal-filter derivation and the $H$ calculations; the PSC table, the cutoff frequencies and the convolution sketch; population decoders with units; the function decoders, the weight matrix and the network sketches. Attach extra graph paper as needed.
+
+\end{document}
