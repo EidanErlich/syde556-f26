@@ -29,3 +29,6 @@ CLAUDE.md
 
 # VS Code workspace settings (LaTeX Workshop build recipe) — local only
 .vscode/
+
+# Local Python virtual environment
+.venv/
