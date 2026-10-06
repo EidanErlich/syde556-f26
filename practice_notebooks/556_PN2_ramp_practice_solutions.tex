@@ -1,0 +1,595 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Ramp practice}
+\rhead{Solutions}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\ans}[1]{\par\vspace{2pt}{\bfseries #1}\quad}
+
+\newtcolorbox{result}{colback=Green!6,colframe=Green!50!black,boxrule=0.5pt,left=4pt,right=4pt,top=2pt,bottom=2pt,arc=1pt}
+\newtcolorbox{sketch}{colback=Blue!4,colframe=Blue!40!black,boxrule=0.4pt,left=4pt,right=4pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=What the sketch should show}
+
+\setlist[enumerate]{leftmargin=1.5em,itemsep=2pt,topsep=2pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Practice set solutions}\\[2pt]
+{\large One idea at a time}\\[4pt]
+Open a solution only after attempting that question. Each green box is the result. Blue boxes describe sketches.
+\end{center}
+
+The original practice test uses these same moves with the section headings removed. The six that unlock it:
+
+\begin{enumerate}[leftmargin=1.4em]
+\item Convert a limit in hertz to a pair of angular cutoffs, $\pm 2\pi f$.
+\item Compute $J$ and compare it with $1$ before drawing voltage.
+\item Put brackets and a conjugate on $H(\omega)$, then ask where $X$ is zero.
+\item Integrate the PSC piece first; the sketch is that function after dividing by the integral.
+\item A count times $h(t_k)$ is already a rate. A second $\Delta t$ cancels the conversion twice.
+\item Currents add, so separate populations compute $f(x)+g(y)$. A product needs one population that sees both variables.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Hertz and radians per second}
+
+\ans{1.}
+$\omega = 2\pi f = 2\pi\cdot 6 = 12\pi$ rad/s. In the other direction, $f = \omega/(2\pi) = 10\pi/(2\pi) = 5\,\mathrm{Hz}$.
+\begin{result}
+$12\pi$ rad/s, and $5\,\mathrm{Hz}$.
+\end{result}
+
+\ans{2.}
+A cosine at frequency $f$ occupies $+\omega$ and $-\omega$. So $4\,\mathrm{Hz}$ contributes $\pm 8\pi$ rad/s, and $7\,\mathrm{Hz}$ contributes $\pm 14\pi$ rad/s. Nothing else is present. DC is absent because a cosine has mean zero.
+\begin{result}
+$\omega \in \{-14\pi,\ -8\pi,\ +8\pi,\ +14\pi\}$ rad/s.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Bins on a signal of length $T$}
+
+\ans{1.}
+$N = T/\Delta t = 1/0.001 = 1000$. The bin spacing is $\Delta f = 1/T = 1\,\mathrm{Hz}$ and $\Delta\omega = 2\pi/T = 2\pi$ rad/s. Nyquist is $1/(2\Delta t) = 500\,\mathrm{Hz}$.
+
+The band limit keeps $|f| \le 4\,\mathrm{Hz}$. With DC removed, the surviving bins are $k = \pm 1,\pm 2,\pm 3,\pm 4$, hence
+\[
+\omega_k = \pm 2\pi,\ \pm 4\pi,\ \pm 6\pi,\ \pm 8\pi\ \mathrm{rad/s}.
+\]
+Four positive-frequency coefficients are free. Conjugate symmetry builds the negative side from them. Each free coefficient has a real part and an imaginary part, so $4 \times 2 = 8$ real numbers.
+\begin{result}
+$N = 1000$, $\Delta\omega = 2\pi$ rad/s, Nyquist $500\,\mathrm{Hz}$. Nonzero at $\pm 2\pi k$ for $k = 1,2,3,4$. Eight independent real numbers.
+\end{result}
+
+\ans{2.}
+$\Delta f = 1/T = 2\,\mathrm{Hz}$ and $\Delta\omega = 2\pi/T = 4\pi$ rad/s. Bins inside $|f| \le 8\,\mathrm{Hz}$ sit at $2,4,6,8\,\mathrm{Hz}$ on each side of zero. In radians that is
+\[
+\omega = \pm 4\pi,\ \pm 8\pi,\ \pm 12\pi,\ \pm 16\pi.
+\]
+Again four free complex coefficients, so eight real numbers. The bin on the limit is included: ``band-limited to $8\,\mathrm{Hz}$'' keeps $|f| \le 8$.
+\begin{result}
+$\Delta f = 2\,\mathrm{Hz}$, $\Delta\omega = 4\pi$ rad/s, nonzero at $\pm 4\pi,\pm 8\pi,\pm 12\pi,\pm 16\pi$. Eight real numbers.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{What makes $x(t)$ real}
+
+\ans{1.}
+$X = 3 - i$, so $a = 3$ and $b = -1$. Conjugate symmetry sets $X(-\omega) = 3 + i$. The pair contributes
+\[
+2a\cos\omega t - 2b\sin\omega t = 6\cos\omega t - 2(-1)\sin\omega t = 6\cos\omega t + 2\sin\omega t.
+\]
+\begin{result}
+$X(-\omega) = 3+i$, and the pair is $6\cos\omega t + 2\sin\omega t$.
+\end{result}
+
+\ans{2.}
+With $X(\omega) = X(-\omega) = i$,
+\[
+i\,e^{i\omega t} + i\,e^{-i\omega t} = i\bigl(e^{i\omega t} + e^{-i\omega t}\bigr) = 2i\cos\omega t,
+\]
+which is imaginary. The conjugate of $i$ is $-i$, so the real-signal partner is $X(-\omega) = -i$. Then $a = 0$, $b = 1$, and the pair is $-2\sin\omega t$.
+\begin{result}
+Plain equality leaves $2i\cos\omega t$. The real signal uses $X(-\omega) = -i$ and contributes $-2\sin\omega t$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{One tone, written as coefficients}
+
+\ans{1.}
+$6\cos(2\pi t)$ has amplitude $A = 6$ at $1\,\mathrm{Hz}$, so $\omega = \pm 2\pi$ and $X(\pm 2\pi) = A/2 = 3$. Rebuilding: $a = 3$, $b = 0$, and $2a\cos(2\pi t) = 6\cos(2\pi t)$.
+\begin{result}
+$X(2\pi) = X(-2\pi) = 3$, and every other coefficient is $0$.
+\end{result}
+
+\ans{2.}
+$6\pi$ rad/s is $6\pi/(2\pi) = 3\,\mathrm{Hz}$. Amplitude $A = 4$, so
+\[
+X(6\pi) = -iA/2 = -2i, \qquad X(-6\pi) = iA/2 = 2i.
+\]
+Check: $a = 0$, $b = -2$, and $-2b\sin(6\pi t) = 4\sin(6\pi t)$.
+\begin{result}
+$3\,\mathrm{Hz}$, with $X(6\pi) = -2i$ and $X(-6\pi) = 2i$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{RMS from the coefficients}
+
+\ans{1.}
+A cosine of amplitude $6$ has mean square $6^2/2 = 18$, so the RMS is $\sqrt{18} = 3\sqrt{2}$.
+
+Parseval uses both sides: $|3|^2 + |3|^2 = 18$. The square root is the same RMS. The two routes agree because the series convention puts $A/2$ on each side, and $2(A/2)^2 = A^2/2$.
+\begin{result}
+RMS $= \sqrt{18} = 3\sqrt{2}$.
+\end{result}
+
+\ans{2.}
+The matching negative-frequency coefficient is $X(-4\pi) = 1 - i$. The squared magnitudes are
+\[
+|2|^2 + |2|^2 + |1+i|^2 + |1-i|^2 = 4 + 4 + 2 + 2 = 12.
+\]
+RMS $= \sqrt{12} = 2\sqrt{3}$. The scale factor that brings the RMS to $1$ is $1/(2\sqrt{3})$. Every coefficient is multiplied by that same number, so $|X(\omega)|$ keeps its shape and only its height changes.
+\begin{result}
+RMS $= 2\sqrt{3}$. Scale by $1/(2\sqrt{3})$. The shape of $|X|$ is unchanged.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Band-limited white noise}
+
+\ans{1.}
+The cutoff $8\,\mathrm{Hz}$ is $\omega = \pm 16\pi$ rad/s. Average the magnitude over many draws: flat between those cutoffs, zero outside. Zero mean removes the DC coefficient. An isolated notch at $\omega = 0$ is acceptable and is not required if the drawing is a schematic envelope. The RMS is $1$ only so that the signal can be rescaled; the question forbids computing the resulting height.
+\begin{sketch}
+Horizontal axis $\omega$ in rad/s, zero in the middle. A flat plateau from $-16\pi$ to $+16\pi$, and zero outside. Both edges labelled $\pm 16\pi$ rad/s. Vertical axis is average $|X|$, with no numeric height.
+\end{sketch}
+\begin{result}
+Cutoffs at $\pm 16\pi$ rad/s. Flat in between, zero outside. Height left blank.
+\end{result}
+
+\ans{2.}
+The $3\,\mathrm{Hz}$ cutoffs are $\pm 6\pi$ rad/s. Both sketches are flat, two-sided, and zero outside their own cutoffs. The plateau height is still not determined by the question. What changes is the width.
+
+In time, the lower limit removes the fast coefficients. With RMS held at $1$, the typical size of the trace stays the same and the wiggles get slower. The fastest timescale goes from about $1/8\,\mathrm{s}$ to about $1/3\,\mathrm{s}$.
+\begin{sketch}
+Same kind of box as question 1, now ending at $\pm 6\pi$ rad/s.
+\end{sketch}
+\begin{result}
+Same flat two-sided shape, cutoffs moved to $\pm 6\pi$ rad/s. Time trace: slower variation, same RMS size.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Current, before any sketch}
+
+\ans{1.}
+$e = +1$ gives $J = (1)(1) + 1 = 2$. The encoder $e = -1$ gives $J = (-1)(1) + 1 = 0$. Only $J = 2$ is above threshold. The neuron with $J = 0$ sits at rest.
+\begin{result}
+$J_+ = 2$ can spike. $J_- = 0$ cannot.
+\end{result}
+
+\ans{2.}
+$e = +1$ gives $J = 2(1)(-1/2) + 3/2 = 1/2$. The encoder $e = -1$ gives $J = 2(-1)(-1/2) + 3/2 = 5/2$. The negative encoder is the one that spikes. The sign of $x$ reversed the usual picture; the comparison $J > 1$ is the whole test.
+\begin{result}
+$J_+ = 1/2$ cannot spike. $J_- = 5/2$ can.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Voltage traces}
+
+\ans{1.}
+Both traces start at the origin. Voltage bends toward $J$, steepest at $t = 0$.
+
+The positive encoder heads toward $2$, crosses $1$, spikes, returns to $0$, and stays there for $2\,\mathrm{ms}$ before the same rise repeats.
+
+The negative encoder has equilibrium $0$ and initial value $0$, so the trace stays on the axis. No spike and no refractory interval. The clamp is idle because the equation is not trying to push $v$ negative.
+\begin{sketch}
+Two curves, a horizontal line at $v = 1$, axes $t$ and $v$. The $e = +1$ curve is a concave rise cut off at $1$, then a flat gap at $0$ of length $2\,\mathrm{ms}$, repeated. The $e = -1$ curve stays at $0$.
+\end{sketch}
+
+\ans{2.}
+The positive encoder rises toward $1/2$ and flattens there, under the threshold. No spike. The formula is $v(t) = \tfrac12\bigl(1 - e^{-t/\trc}\bigr)$.
+
+The negative encoder heads toward $5/2$, crosses $1$, and then repeats the spike, reset, and $2\,\mathrm{ms}$ hold.
+
+For $J = -1$ and $v(0) = 0$, the differential equation pulls downward. The clamp holds the trace at $0$. There is still no spike, because the threshold is above the neuron, not below it.
+\begin{sketch}
+$e = +1$: concave rise flattening at $1/2$, threshold drawn at $1$ and never touched. $e = -1$: the spiking pattern from the previous question, now on this neuron. A third trace for $J = -1$ is the horizontal line $v = 0$.
+\end{sketch}
+
+%---------------------------------------------------------------------
+\section{Time to reach threshold}
+
+\ans{1.}
+$1 - 1/J = 1/2$, so
+\[
+t_{\mathrm{th}} = -0.020\ln(1/2) = 0.020\ln 2\ \mathrm{s} = 20\ln 2\ \mathrm{ms}.
+\]
+The refractory period is another $2\,\mathrm{ms}$, so the interval is $(2 + 20\ln 2)\,\mathrm{ms}$.
+\begin{result}
+$t_{\mathrm{th}} = 20\ln 2$ ms, ISI $= (2 + 20\ln 2)$ ms.
+\end{result}
+
+\ans{2.}
+At $J = 1$ the formula would ask for $\ln(1 - 1) = \ln 0$, which is not a finite time. Voltage is $v(t) = 1 - e^{-t/\trc}$. It climbs toward $1$ and reaches $1$ only as $t \to \infty$, so there is no spike.
+
+At $J = 4$, $1 - 1/4 = 3/4$, so $t_{\mathrm{th}} = -\trc\ln(3/4) = \trc\ln(4/3)$. This is shorter than $20\ln 2$ ms because $3/4 > 1/2$: the logarithm of a number closer to $1$ is smaller, and a larger equilibrium crosses $1$ sooner. Both intervals include the same $2\,\mathrm{ms}$ refractory hold.
+\begin{result}
+$J = 1$: no finite spike. $J = 4$: $t_{\mathrm{th}} = \trc\ln(4/3)$, shorter than the $J = 2$ wait.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Two spike trains, one $r(t)$}
+
+\ans{1.}
+\[
+\hat{x} = d_+ a_+ + d_- a_- = d_+ a_+ + (-d_+)a_- = d_+(a_+ - a_-).
+\]
+Defining $r = a_+ - a_-$ gives $\hat{x} = d_+ r$. One filter can then be applied to $r$.
+\begin{result}
+$\hat{x} = d_+(a_+ - a_-)$.
+\end{result}
+
+\ans{2.}
+$0.1$ is not $-0.4$, so factoring out a single coefficient leaves a remainder. The decoded value is $0.4\,a_+ + 0.1\,a_-$, and the two trains have to be filtered, or decoded, separately.
+\begin{result}
+No. Compute $0.4\,a_+ + 0.1\,a_-$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{The optimal filter as a formula}
+
+\ans{1.}
+\[
+H(\omega) = \frac{\langle X(\omega)\,\overline{R(\omega)}\rangle}{\langle |R(\omega)|^2\rangle}.
+\]
+$X(\omega)$ is the Fourier transform of the input. $R(\omega)$ is the Fourier transform of the signed spike response $r(t)$. The bar is the complex conjugate, applied to $R$ before the product. The brackets average that product, and the denominator, over the ensemble of signals. The denominator is the average power of the response at that frequency.
+\begin{result}
+The displayed formula, with those five identifications.
+\end{result}
+
+\ans{2.}
+Past the cutoff every record has $X(\omega) = 0$, so each product $X\overline{R}$ is $0$. Uncorrelated noise does not create an average product either. The numerator is $0$ while $|R|$ still has power, and the ratio $H$ is $0$. Multiplication by that $H$ removes those frequencies from $\hat{X} = RH$.
+\begin{result}
+$H = 0$ outside the input band, so $\hat{X} = 0$ there too.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{The same filter on given numbers}
+
+\ans{1.}
+In band, the conjugates do not change the real numbers $R$:
+\[
+H = \frac{1\cdot 2 + 2\cdot 4}{|2|^2 + |4|^2} = \frac{2 + 8}{4 + 16} = \frac{10}{20} = \frac12.
+\]
+Out of band the numerator is $0\cdot 3 + 0\cdot(-1) = 0$, so $H = 0$. The denominator $9 + 1$ is irrelevant once the numerator vanishes.
+\begin{result}
+$H = 1/2$ in band, and $H = 0$ out of band.
+\end{result}
+
+\ans{2.}
+Conjugate first. $\overline{2} = 2$, so the first product is $i\cdot 2 = 2i$. And $\overline{i} = -i$, so the second product is $1\cdot(-i) = -i$. Powers are $|2|^2 = 4$ and $|i|^2 = 1$.
+\[
+H = \frac{2i + (-i)}{4 + 1} = \frac{i}{5}.
+\]
+Multiplying by $R$ instead of $\overline{R}$ on the second record would have produced $+i$ and the numerator $2i + i = 3i$. That is a different filter.
+\begin{result}
+$H = i/5$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Three spectra on lined-up axes}
+
+\ans{1.}
+The input cutoff is $\pm 12\pi$ rad/s. Draw $|X|$ flat between those edges and zero outside. Draw $|R|$ nonzero on both sides of the cutoff; spikes are deltas, and a delta has a flat spectrum, so response power does not stop where the input stops. Draw $|\hat{X}|$ with the same support as $|X|$, because $H = 0$ outside the band. Leave all three heights blank.
+\begin{sketch}
+Three aligned $\omega$ axes. $|X|$ and $|\hat{X}|$ are boxes on $[-12\pi,\ 12\pi]$. $|R|$ continues past both dashed cutoffs. Heights arbitrary and not labelled.
+\end{sketch}
+\begin{result}
+$|R|$ is wide because spikes contain all frequencies. $|\hat{X}|$ is cut back to $\pm 12\pi$ because $H$ is zero wherever $X$ is zero.
+\end{result}
+
+\ans{2.}
+A $3\,\mathrm{Hz}$ cosine has input power only at $\omega = \pm 6\pi$. The filled rectangle is replaced by a pair of lines, one at each of those frequencies. The response is still broadband, for the same reason as in the previous question. The decoded output keeps the two lines and loses the broadband tails, because $H$ passes only frequencies where the input had power.
+\begin{sketch}
+$|X|$ and $|\hat{X}|$: ticks at $\pm 6\pi$ only. $|R|$: a broad nonzero trace across the axis. No rectangle.
+\end{sketch}
+
+%---------------------------------------------------------------------
+\section{Normalizing a PSC kernel}
+
+\ans{1.}
+\[
+c_0 = \int_0^{\infty} e^{-t/\tau}\,dt = \Bigl[-\tau e^{-t/\tau}\Bigr]_0^{\infty} = \tau.
+\]
+Therefore $h_0(t) = \tau^{-1} e^{-t/\tau}$ for $t \ge 0$, and $h_0(0) = 1/\tau$.
+\begin{result}
+$c_0 = \tau$, $h_0(0) = 1/\tau$.
+\end{result}
+
+\ans{2.}
+Set $u = t$ and $dv = e^{-t/\tau}\,dt$, so $du = dt$ and $v = -\tau e^{-t/\tau}$.
+\[
+c_1 = \Bigl[-t\tau e^{-t/\tau}\Bigr]_0^{\infty} + \tau\int_0^{\infty} e^{-t/\tau}\,dt.
+\]
+The boundary term is zero at $0$ because of the factor $t$, and zero at infinity because the exponential decays faster than $t$ grows. The remaining integral is $c_0$, so $c_1 = \tau\cdot\tau = \tau^2$.
+
+Thus $h_1(t) = \tau^{-2}\, t\, e^{-t/\tau}$ for $t \ge 0$, and $h_1(0) = 0$. Differentiate $t e^{-t/\tau}$: the product rule gives $e^{-t/\tau}(1 - t/\tau)$. The exponential never vanishes, so the critical point is $t = \tau$. The height is
+\[
+h_1(\tau) = \tau^{-2}\cdot\tau\cdot e^{-1} = \frac{1}{e\tau}.
+\]
+The second-derivative test, or the sign change of $(1 - t/\tau)$ from positive to negative, confirms a maximum.
+\begin{result}
+$c_1 = \tau^2$, $h_1(0) = 0$, peak $(\tau,\ 1/(e\tau))$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Drawing the two kernels}
+
+\ans{1.}
+\begin{sketch}
+Common axes $t$ and $h$, with $\tau$ marked on the time axis. Both curves are zero for $t < 0$. The $h_0$ curve jumps to $1/\tau$ at the origin and decays; that point is both its value at zero and its peak. The $h_1$ curve starts at $0$, rises, and peaks at $t = \tau$ with height $1/(e\tau)$, lower than $1/\tau$, then decays.
+\end{sketch}
+Unit area does not mean equal peak heights. The wider-looking $h_1$ bump is lower because both curves enclose area $1$.
+
+\ans{2.}
+The peak rule for $n \ge 1$ is $t = n\tau$, so the $n = 2$ peak is at $2\tau$. The factor $t^2$ forces $h_2(0) = 0$. The time $2\tau$ is later than the $h_1$ peak at $\tau$.
+\begin{result}
+Peak at $2\tau$, value $0$ at $t = 0$, later than $h_1$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{A longer synaptic time constant}
+
+\ans{1.}
+A larger $\tau$ spreads the same unit area over a longer time. Each spike's contribution lingers, so rapid jitter in the decoded trace is averaged down. That is the loss of high-frequency fluctuation.
+
+The same kernel is a stronger low-pass filter: $|H(\omega)| = 1/\sqrt{1 + \omega^2\tau^2}$ falls as $\tau$ grows, and the phase lag grows with $\omega\tau$. Fast pieces of the signal are delayed and attenuated. Those two effects are one fact about $H$ and one fact about averaging spikes.
+\begin{result}
+Smoother trace, because spikes are averaged longer. More lag and more attenuation of fast signal content, because $\omega\tau$ increases.
+\end{result}
+
+\ans{2.}
+The filter and the decoder are fixed, so both inputs see the same $H(\omega)$ and the same residual spike noise. The $2\,\mathrm{Hz}$ input concentrates its power at low $\omega\tau$, where the gain is nearer $1$ and the phase shift is smaller. Relative to its own slow timescale, lag and smoothing distort it less. The $12\,\mathrm{Hz}$ input sits farther up the rolloff, so more of the signal itself is delayed and attenuated. That difference is signal distortion.
+
+Leftover spike noise is still present for both. A slower input is not a promise that every realization has a smaller total error; representation error and the spikes that the filter did not fully remove are still in the trace. The training-range remark in the question only says the decoder is being used where it was fitted, so the comparison is about the filter, not about extrapolation.
+\begin{result}
+The slow input suffers less filter distortion. Spike noise remains in both decodes.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{The decoder, as a matrix}
+
+\ans{1.}
+\[
+D^{\T} = \bigl(AA^{\T} + N\sigma^2 I_n\bigr)^{-1} AX^{\T}.
+\]
+$A$ is $n \times N$, $X$ is $d \times N$, the inverted matrix is $n \times n$, and $D$ is $d \times n$. Equivalently, $D = XA^{\T}(AA^{\T} + N\sigma^2 I)^{-1}$.
+\begin{result}
+Those four shapes, and the displayed formula.
+\end{result}
+
+\ans{2.}
+The row counts say $n = 40$ neurons and $d = 2$. The shared column count says $N = 1000$ samples. The inverted matrix is $40 \times 40$, namely $AA^{\T} + 1000\,(0.1)^2 I$. The decoder $D$ is $2 \times 40$.
+\begin{result}
+$n = 40$, $d = 2$, $N = 1000$. Invert a $40 \times 40$ matrix. $D$ is $2 \times 40$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{A decoder small enough to finish}
+
+\ans{1.}
+$AA^{\T} = 2^2 + 4^2 = 20$ and $AX^{\T} = 2\cdot 1 + 4\cdot 2 = 10$. Unregularized, $d = 10/20 = 1/2$. Decoded samples: $(1/2)\cdot 2 = 1$ and $(1/2)\cdot 4 = 2$, which match the targets.
+
+With penalty $10$, the denominator is $20 + 10 = 30$, so $d = 10/30 = 1/3$. Decoded samples: $2/3$ and $4/3$. Both are pulled toward zero relative to the targets. That shrinkage is what regularization trades for robustness when the activities are later noisy. Activities in hertz make $d$ a number of seconds.
+\begin{result}
+Unregularized $d = 1/2$, decoding $(1,\ 2)$. Regularized $d = 1/3$, decoding $(2/3,\ 4/3)$.
+\end{result}
+
+\ans{2.}
+$AA^{\T} = 1 + 1 + 4 = 6$ and $AX^{\T} = 1\cdot 1 + 1\cdot 1 + 2\cdot 4 = 10$, so $d = 10/6 = 5/3$.
+
+Decoded values: $5/3$, $5/3$, and $10/3$. Errors against $(1,\ 1,\ 4)$ are $-2/3$, $-2/3$, and $+2/3$. The mean squared error is
+\[
+\frac{1}{3}\Bigl(3\cdot\frac{4}{9}\Bigr) = \frac{4}{9},
+\]
+so the RMSE is $2/3$. One coefficient cannot hit three targets that are not proportional to the activities. Here the activities scale as $1,1,2$ and the targets as $1,1,4$.
+\begin{result}
+$d = 5/3$, decoded $(5/3,\ 5/3,\ 10/3)$, RMSE $= 2/3$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Spike counts and the factor of $\Delta t$}
+
+\ans{1.}
+\[
+s_{ik} = \sum_j b_{ij}\, h_{k-j},
+\]
+and the sum may be restricted to $j \le k$ because a causal kernel is zero at negative lags. No extra $\Delta t$ appears.
+
+The impulse-height sample of the same spike is $b_{ij}/\Delta t$. A Riemann sum then multiplies by $\Delta t$:
+\[
+\sum_j \frac{b_{ij}}{\Delta t}\, h_{k-j}\, \Delta t = \sum_j b_{ij}\, h_{k-j}.
+\]
+The two factors cancel. A count is dimensionless and $h_k$ is in $\mathrm{s}^{-1}$, so $s_{ik}$ is a rate in hertz, which is the unit the rate-mode decoder was fitted on.
+\begin{result}
+The sum above. No extra $\Delta t$. The height $1/\Delta t$ and the Riemann $\Delta t$ cancel.
+\end{result}
+
+\ans{2.}
+A steady $100\,\mathrm{Hz}$ train produces $100 \times 0.001 = 0.1$ spikes per bin on average. A kernel whose samples sum to $1$ turns each spike into a unit bump, so the filtered trace settles near $0.1$, not near $100$. The rate decoder should see $100\,\mathrm{Hz}$. The trace is short by $1/\Delta t = 1000$.
+
+The missing factor can multiply the stored spikes (replace $1$ by $1/\Delta t$), multiply the kernel (use $h(t_k)$ in $\mathrm{s}^{-1}$, whose samples sum to about $1/\Delta t$), or multiply the decoded output. Insert it in one of those places.
+\begin{result}
+Settles near $0.1$; the decoder should see $100$. Multiply spikes, kernel, or decoded output by $1/\Delta t$, in exactly one place.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{From a function decoder to weights}
+
+\ans{1.}
+The encoder is the number $+1$, so $\langle e, d^f_j\rangle = d^f_j$. The weights are $\alpha$ times those columns:
+\[
+w_{1} = 3\cdot 0.2 = 0.6, \qquad w_{2} = 3\cdot(-0.1) = -0.3.
+\]
+Bias stays outside the sum:
+\[
+J = 0.6\,a_1 - 0.3\,a_2 + 1.
+\]
+\begin{result}
+Weights $0.6$ and $-0.3$, and $J = 0.6 a_1 - 0.3 a_2 + 1$.
+\end{result}
+
+\ans{2.}
+$D^f$ maps A's $n = 10$ rates to a $q = 3$ vector, so it is $3 \times 10$. The matrix $E$ has one row per neuron of B and one column per component of that vector, so it is $4 \times 3$. The product $W^f = ED^f$ is $4 \times 10$.
+\begin{result}
+$D^f$ is $3\times 10$, $E$ is $4\times 3$, $W^f$ is $4\times 10$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{A target of the form $2x+1$}
+
+\ans{1.}
+\[
+d^{2x+1} = 2d + d^{\mathbf{1}} = (0.8,\ -0.8) + (0.1,\ 0.1) = (0.9,\ -0.7).
+\]
+The piece $2d$ decodes $2x$. The constant $1$ is a second target and needs its own decoder. Leaving it out shifts every reconstruction down by about $1$.
+\begin{result}
+$(0.9,\ -0.7)$. The decoder $2d$ reconstructs $2x$ only.
+\end{result}
+
+\ans{2.}
+\[
+d^{-x+2} = -d + 2d^{\mathbf{1}} = (-1,\ 1) + (1,\ 1) = (0,\ 2).
+\]
+\begin{result}
+$(0,\ 2)$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Staying inside the trained range}
+
+\ans{1.}
+$x(t)$ ranges over $[-1,\ 1]$, so $y = 2x + 1$ ranges over $[-1,\ 3]$. The part of the cycle with $y > 1$ leaves the interval on which B was trained. Tuning curves and decoders were not fitted there, so the decoded output on that part of the cycle is an extrapolation and the error grows. This is not a claim that the neuron hard-clips at $y = 1$.
+\begin{result}
+Desired range $[-1,\ 3]$. The portion above $1$ is outside the trained interval.
+\end{result}
+
+\ans{2.}
+$y = \tfrac12\sin(2\pi t)$ ranges over $[-1/2,\ 1/2]$, which sits inside $[-1,\ 1]$. The trained-range limitation does not apply to this connection. Other errors, such as filter lag and spike ripple, can still be present. They are a different mechanism.
+\begin{result}
+Range $[-1/2,\ 1/2]$. The trained-range limitation does not apply.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Addition and multiplication}
+
+\ans{1.}
+Currents add, so the post population should receive $-x$ from the $x$ population and $4y$ from the $y$ population.
+\begin{result}
+\begin{verbatim}
+x (scalar) -- decode -x --\
+                           > z (scalar z)
+y (scalar) -- decode  4y -/
+\end{verbatim}
+\end{result}
+
+\ans{2.}
+\begin{result}
+\begin{verbatim}
+x (scalar) -- pass x --\
+                        > (x, y)  [2-D] -- decode xy --> p (scalar p)
+y (scalar) -- pass y --/
+\end{verbatim}
+\end{result}
+The middle population is the added two-dimensional representation. The arrows into it are identity embeddings, one component each. The arrow out of it is the function decoder for the product.
+
+\ans{3.}
+\begin{result}
+\begin{verbatim}
+y (scalar) -- decode y^2 --> q (scalar q)
+\end{verbatim}
+\end{result}
+Squaring uses only $y$. A function decoder on the $y$ population already sees that variable. A joint population is for a nonlinearity that mixes two variables which currently live in different populations.
+
+\ans{4.}
+$(x+y)^2 = x^2 + 2xy + y^2$. The sum of a decoded $x^2$ and a decoded $y^2$ is missing $2xy$. Separate currents cannot manufacture that cross term.
+
+Sum first, then square the one-dimensional result:
+\begin{result}
+\begin{verbatim}
+x (scalar) -- decode x --\
+                          > s (scalar x+y) -- decode s^2 --> r
+y (scalar) -- decode y --/
+\end{verbatim}
+\end{result}
+A two-dimensional population of $(x, y)$ with a decoder for $(x+y)^2$ also works. The sum-then-square route is enough, and it is the one that uses the addition rule directly.
+
+%---------------------------------------------------------------------
+\section{The optimal filter in time}
+
+\ans{1.}
+Nonzero $h(t)$ for $t < 0$ means the estimate of $x$ at time $t$ uses spikes that have not happened yet. A recording can be filtered after it is stored, so those future spikes are available and the acausal filter is a legitimate offline decoder. A synapse produces current from spikes that have already arrived. It cannot implement a kernel that looks ahead.
+\begin{result}
+Acausal means $h(t < 0) \ne 0$. Legal offline. Not a synapse.
+\end{result}
+
+\ans{2.}
+Convolution against $W(\omega)$ in the frequency domain is multiplication by the inverse transform of $W$ in the time domain. The window that smooths a noisy $H(\omega)$ therefore multiplies $h(t)$ by a decaying time window. The impulse response becomes shorter and smoother. That is why the windowed optimal filter stops oscillating far from $t = 0$.
+\begin{result}
+Smoothing $H$ in frequency multiplies $h(t)$ by a time window.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Three questions that each use two ideas}
+
+\ans{1.}
+$X(2\pi) = 2 + 2i$ has $a = 2$ and $b = 2$. The pair at $\omega = 2\pi$ contributes
+\[
+2a\cos(2\pi t) - 2b\sin(2\pi t) = 4\cos(2\pi t) - 4\sin(2\pi t).
+\]
+Squared magnitudes: $|2+2i|^2 = 8$ on each side, and $8 + 8 = 16$. RMS $= \sqrt{16} = 4$.
+
+As a check, $4\cos\theta - 4\sin\theta$ has amplitude $\sqrt{4^2 + 4^2} = 4\sqrt{2}$, and a sinusoid of that amplitude has mean square $(4\sqrt{2})^2/2 = 16$.
+\begin{result}
+$x(t) = 4\cos(2\pi t) - 4\sin(2\pi t)$, RMS $= 4$.
+\end{result}
+
+\ans{2.}
+Both encoders see $x = 0$, so both currents equal $0 + 1 = 1$. Voltage from rest is $v(t) = 1 - e^{-t/\trc}$ for each neuron. Both traces bend toward $1$ and neither reaches it in finite time. No spikes, no resets, no refractory intervals. The threshold line is the asymptote, not a crossing.
+\begin{sketch}
+Both curves leave the origin, concave down, and flatten onto the line $v = 1$ without a spike mark.
+\end{sketch}
+\begin{result}
+Both neurons approach $1$ asymptotically. Neither spikes.
+\end{result}
+
+\ans{3.}
+$y^2$ is a function of $y$ alone and $x$ is a function of $x$ alone. Currents add, which is exactly the algebra of $y^2 + x$.
+\begin{result}
+\begin{verbatim}
+x (scalar) -- decode x   --\
+                            > z (scalar z)
+y (scalar) -- decode y^2 --/
+\end{verbatim}
+\end{result}
+The product $xy$ mixes the two variables inside one function, so no split of the form $f(x) + g(y)$ reproduces it. Here the mix is only a sum of two single-variable functions, and the separate populations are sufficient.
+
+\vspace{8pt}
+Retake Practice Test~2 with both solution files closed. On each original question, write the convention first (both cutoffs, $J$ compared with $1$, brackets on $H$, area of the PSC, count versus $1/\Delta t$, sum versus product) and only then the sketch or the matrix.
+
+\end{document}

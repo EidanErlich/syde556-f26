@@ -1,0 +1,378 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Ramp practice}
+\rhead{Temporal representation}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+
+\newtcolorbox{idea}{colback=gray!8,colframe=gray!55,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=Idea for this section}
+\newtcolorbox{trythis}{colback=orange!6,colframe=orange!60!black,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt}
+
+\setlist[enumerate]{leftmargin=1.6em,itemsep=6pt,topsep=4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Practice set: one idea at a time}\\[2pt]
+{\large Temporal representation and feedforward transformations}\\[4pt]
+{\normalsize Questions. Solutions are in a separate file. Leave that file closed.}
+\end{center}
+
+\subsection*{How to use this}
+
+The practice test puts three decisions inside one question: which formula, which convention, and what the sketch is marking. This set splits those decisions apart, then puts two of them back together at the end.
+
+Each section states one idea, then asks two questions. The first question shows the move. The second changes the numbers, the sign, or the shape, so a memorized picture from the first one will not survive.
+
+\begin{enumerate}[leftmargin=1.4em]
+\item Read the idea box. Attempt the first question for about ten minutes.
+\item Open the solution for that question only. Read the working, close the file, and rewrite the answer on a blank page.
+\item Attempt the second question with the solutions closed. If it fails, the gap is the idea, not the arithmetic. Restate the idea box from memory, then try again before you read that solution.
+\item When every second question in a section is possible from a blank page, redo Practice Test~2 closed book.
+\end{enumerate}
+
+\textbf{Conventions.} Normalized LIF: rest $0$, threshold $1$, $\trc = 20\,\mathrm{ms}$, $\tref = 2\,\mathrm{ms}$. Series convention $x(t) = \sum_k X(\omega_k)\, e^{i\omega_k t}$. Parseval: $\frac{1}{T}\int_0^T x(t)^2\,dt = \sum_k |X(\omega_k)|^2$. A spike train is a sum of deltas. Rate-mode activities are in hertz. Decoders use $D^{\T} = (AA^{\T} + N\sigma^2 I)^{-1}AX^{\T}$ when a penalty is present, with $A$ of shape $n \times N$ and $X$ of shape $d \times N$.
+
+Leave exponentials and logarithms symbolic. Label every sketch axis.
+
+%---------------------------------------------------------------------
+\section{Hertz and radians per second}
+
+\begin{idea}
+Ordinary frequency $f$ counts cycles per second. Angular frequency is the same information in radians per second: $\omega = 2\pi f$. A real signal has content at $+\omega$ and at $-\omega$.
+\end{idea}
+
+\begin{enumerate}
+\item A tone sits at $6\,\mathrm{Hz}$. Give $\omega$ in rad/s. A second tone sits at $\omega = 10\pi$ rad/s. Give its frequency in hertz.
+\item A signal on $T = 1\,\mathrm{s}$ contains a $4\,\mathrm{Hz}$ cosine and a $7\,\mathrm{Hz}$ cosine. List every angular frequency at which its spectrum can be nonzero.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Bins on a signal of length $T$}
+
+\begin{idea}
+On an interval of length $T$ the bins are $\Delta f = 1/T$ hertz apart, so $\Delta\omega = 2\pi/T$. Bin number $k$ sits at $\omega_k = k\,\Delta\omega$. With samples spaced by $\Delta t$, there are $N = T/\Delta t$ samples, and the highest representable frequency is the Nyquist frequency $1/(2\Delta t)$.
+\end{idea}
+
+\begin{enumerate}
+\item Take $T = 1\,\mathrm{s}$, $\Delta t = 1\,\mathrm{ms}$, and a band limit of $4\,\mathrm{Hz}$. The DC bin is set to zero. Find $N$, $\Delta\omega$, and the Nyquist frequency in hertz. List every $\omega_k$ whose coefficient may be nonzero. How many independent real random numbers does conjugate symmetry leave free?
+\item Take $T = 0.5\,\mathrm{s}$ and a band limit of $8\,\mathrm{Hz}$, again with DC removed. No time step is given, so there is no Nyquist frequency to compute. Find $\Delta f$ and $\Delta\omega$, list the nonzero $\omega_k$ inside the limit, and count the independent real numbers.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{What makes $x(t)$ real}
+
+\begin{idea}
+A coefficient $X = a + ib$ contributes $2a\cos\omega t - 2b\sin\omega t$ once it is paired with $X(-\omega) = \overline{X(\omega)}$. That pairing is conjugate symmetry. Copying $X(\omega)$ onto $-\omega$ without conjugating leaves an imaginary part whenever $b \ne 0$.
+\end{idea}
+
+\begin{enumerate}
+\item A real signal has $X(\omega) = 3 - i$ at one positive frequency. Write $X(-\omega)$. Write the pair's contribution as a sum of a cosine and a sine.
+\item Someone claims a real signal may use $X(\omega) = X(-\omega) = i$. Form $X e^{i\omega t} + X e^{-i\omega t}$ and show what goes wrong. Then write the $X(-\omega)$ that actually produces a real signal, and the resulting sine or cosine.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{One tone, written as coefficients}
+
+\begin{idea}
+Under the series convention, a cosine of amplitude $A$ splits equally onto the two sides: $X(\omega) = X(-\omega) = A/2$. A sine of amplitude $A$ is the pair $X(\omega) = -iA/2$ and $X(-\omega) = iA/2$. Check a proposed pair by rebuilding $2a\cos\omega t - 2b\sin\omega t$.
+\end{idea}
+
+\begin{enumerate}
+\item On $T = 1\,\mathrm{s}$, $x(t) = 6\cos(2\pi t)$. Find $X$ at every nonzero frequency. Rebuild $x(t)$ from those coefficients as a check.
+\item On the same interval, $x(t) = 4\sin(6\pi t)$. Find the frequency in hertz and the two coefficients. Rebuild the sine from $a$ and $b$ as a check.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{RMS from the coefficients}
+
+\begin{idea}
+Parseval says the mean square equals the sum of $|X(\omega_k)|^2$ over every bin, including both sides of zero. RMS is the square root of that mean square. A cosine of amplitude $A$ has mean square $A^2/2$, which must agree with Parseval. Multiplying $x(t)$ by a constant multiplies every coefficient by that constant, so the shape of $|X(\omega)|$ is unchanged.
+\end{idea}
+
+\begin{enumerate}
+\item Using both Parseval and the $A^2/2$ rule, find the RMS of $x(t) = 6\cos(2\pi t)$. The two routes should agree.
+\item A conjugate-symmetric signal on $T = 1\,\mathrm{s}$ has $X(\pm 2\pi) = 2$ and $X(4\pi) = 1+i$, with $X(-4\pi)$ the matching conjugate. Find the RMS. By what factor must $x(t)$ be multiplied so that the RMS becomes $1$? What happens to the shape of $|X(\omega)|$?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Band-limited white noise}
+
+\begin{idea}
+The notebook draws random coefficients inside a frequency limit, conjugates them, zeros the rest, inverse-transforms, and rescales to a requested RMS. ``White'' means the in-band draws share one distribution, so the average of $|X|$ over many signals is flat up to the limit and zero beyond it. One signal looks ragged. The RMS rescaling changes the height of that plateau and does not move the cutoffs. The horizontal axis of the average plot is $\omega$ in rad/s, and a real spectrum has a cutoff on each side of zero.
+\end{idea}
+
+\begin{enumerate}
+\item A real, zero-mean random signal has duration $1\,\mathrm{s}$, RMS $1$, and a white spectrum band-limited to $8\,\mathrm{Hz}$. Sketch the ensemble-average Fourier magnitude against $\omega$. Label both cutoffs with units. Do not calculate the plateau height.
+\item Repeat the sketch for a $3\,\mathrm{Hz}$ limit, still at RMS $1$. In two sentences, say what is the same about the two sketches, and what changes in the time trace when the limit drops from $8\,\mathrm{Hz}$ to $3\,\mathrm{Hz}$ with RMS held fixed.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Current, before any sketch}
+
+\begin{idea}
+The normalized current is $J = \alpha e x + \Jb$. Between spikes, voltage is pulled toward $J$. A spike is possible only when that equilibrium is strictly above the threshold, $J > 1$. Compute $J$ for each encoder before thinking about the shape of $v(t)$.
+\end{idea}
+
+\begin{enumerate}
+\item Two neurons use $J = ex + 1$ at the constant input $x = 1$, with encoders $e = +1$ and $e = -1$. Find both currents. Which neurons can spike?
+\item Two neurons use $J = 2ex + 3/2$ at the constant input $x = -1/2$, again with $e = \pm 1$. Find both currents. Which neurons can spike?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Voltage traces}
+
+\begin{idea}
+From $v(0) = 0$ the subthreshold solution is $v(t) = J\bigl(1 - e^{-t/\trc}\bigr)$. The curve is steepest at the start and bends toward the horizontal line $v = J$. If it hits $1$, the neuron spikes, $v$ resets to $0$, and $v$ stays at $0$ for $\tref$. If $J \le 1$, there is no spike. If the differential equation would pull $v$ below $0$, the simulation clamps $v$ at $0$.
+\end{idea}
+
+\begin{enumerate}
+\item Using the currents from the first question of the previous section, sketch both voltages against time. Mark the threshold. Mark spikes and refractory intervals wherever they occur. Exact spike times are unnecessary.
+\item Using the currents from the second question, sketch both voltages the same way. Separately: if a neuron has $J = -1$ and starts at $v = 0$, what does the trace do, and what is the clamp for?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Time to reach threshold}
+
+\begin{idea}
+Set $J\bigl(1 - e^{-t/\trc}\bigr) = 1$ and solve, which is valid only for $J > 1$:
+\[
+t_{\mathrm{th}} = -\trc \ln\bigl(1 - 1/J\bigr).
+\]
+The inter-spike interval is $\tref + t_{\mathrm{th}}$. At $J = 1$ the voltage approaches threshold and arrives only at infinite time.
+\end{idea}
+
+\begin{enumerate}
+\item Take $J = 2$ and $\trc = 20\,\mathrm{ms}$. Find $t_{\mathrm{th}}$ and the inter-spike interval. Leave $\ln 2$ in the answer.
+\item Repeat for $J = 1$ and for $J = 4$. For $J = 1$, say why there is no finite spike time. For $J = 4$, write $t_{\mathrm{th}}$ and explain, without a calculator, why it is shorter than the $J = 2$ result.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Two spike trains, one $r(t)$}
+
+\begin{idea}
+A symmetric opponent pair has encoders $+1$ and $-1$, the same gain, and the same bias. Least squares then gives decoders $d_- = -d_+$. The decoded value collapses to $d_+(a_+ - a_-)$. The signed train $r = a_+ - a_-$ is that combination. If the two neurons are not a matched pair, the two activities have to stay separate.
+\end{idea}
+
+\begin{enumerate}
+\item Start from $\hat{x} = d_+ a_+ + d_- a_-$ and the relation $d_- = -d_+$. Show that $\hat{x} = d_+ (a_+ - a_-)$.
+\item The two neurons now have unrelated decoders $d_+ = 0.4$ and $d_- = 0.1$. Can a single signed train $r = a_+ - a_-$ still carry the decoded value? Write the expression you would actually compute.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{The optimal filter as a formula}
+
+\begin{idea}
+Decoding $\hat{x} = r * h$ is, at each frequency, multiplication $\hat{X}(\omega) = R(\omega) H(\omega)$. The ensemble-averaged filter that minimizes the power of $X - RH$ is
+\[
+H(\omega) = \frac{\langle X(\omega)\,\overline{R(\omega)}\rangle}{\langle |R(\omega)|^2 \rangle}.
+\]
+The brackets average over signals. The conjugate sits on $R$. Outside the input band, $X = 0$ and the leftover response is uncorrelated with the input, so the numerator is zero and $H = 0$.
+\end{idea}
+
+\begin{enumerate}
+\item Write $H(\omega)$. In one line each, say what $X$, $R$, the conjugate, the brackets, and the denominator are. These are the five things the formula is made of.
+\item A band-limited input is zero past its cutoff, and the response noise there is uncorrelated with the input. Explain why $H(\omega) = 0$ at those frequencies even though $|R(\omega)|$ is not zero. Then say what that implies for $\hat{X}(\omega) = R(\omega)H(\omega)$.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{The same filter on given numbers}
+
+\begin{idea}
+At one frequency, replace each bracket by the sum over the given records (the factor $1/(\text{number of records})$ cancels). Multiply $X$ by the conjugate of $R$, not by $R$ itself. If every $X$ in the list is $0$, the numerator is $0$.
+\end{idea}
+
+\begin{enumerate}
+\item Two records at an in-band frequency have $(X, R) = (1, 2)$ and $(2, 4)$. Two records at an out-of-band frequency have $(X, R) = (0, 3)$ and $(0, -1)$. Find $H$ at each frequency.
+\item Two records at one frequency have $(X, R) = (i,\ 2)$ and $(1,\ i)$. Find $H$. Show the conjugate on each record before you add.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Three spectra on lined-up axes}
+
+\begin{idea}
+``Support'' means where the magnitude is nonzero. Heights are not required. $|X|$ lives only where the input was given power. $|R|$ keeps going past that cutoff because spikes are deltas and deltas contain every frequency. $|\hat{X}| = |R||H|$ lives only where $H$ is nonzero, which is the input's support.
+\end{idea}
+
+\begin{enumerate}
+\item The input is white and band-limited to $6\,\mathrm{Hz}$. On aligned frequency axes, sketch the qualitative support of $|X|$, $|R|$, and $|\hat{X}|$. Label the cutoffs in rad/s. In two sentences, say why $|R|$ is the wide one and why $|\hat{X}|$ is not.
+\item The input is now a single $3\,\mathrm{Hz}$ cosine, not white noise. Sketch the same three supports. The input is no longer a filled rectangle. Say what replaces it, and what $|\hat{X}|$ then looks like.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Normalizing a PSC kernel}
+
+\begin{idea}
+The un-normalized piece is $t^n e^{-t/\tau}$ for $t \ge 0$. The constant $c_n$ is its integral from $0$ to $\infty$, so $h_n = c_n^{-1} t^n e^{-t/\tau}$ has area $1$. Here $n$ is the integer power of $t$. It is not a frequency. For $n = 0$ the integral is immediate. For $n = 1$, integrate by parts; the boundary term vanishes and the remainder is $\tau$ times the $n = 0$ integral.
+\end{idea}
+
+\begin{enumerate}
+\item Find $c_0$ by evaluating the integral. Write $h_0(t)$ for $t \ge 0$, and its value at $t = 0$.
+\item Find $c_1$ by integration by parts. Write $h_1(t)$. Give $h_1(0)$, the time of the peak, and the height of the peak. Set the derivative of $t e^{-t/\tau}$ to zero to locate the peak.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Drawing the two kernels}
+
+\begin{idea}
+$h_0$ jumps to $1/\tau$ at the spike and only decays. $h_1$ starts at $0$ because of the factor $t$, and its peak is at $t = \tau$ with height $1/(e\tau)$. Both are zero for $t < 0$. For $n \ge 1$ the peak of the normalized kernel is at $t = n\tau$, and the value at zero is $0$.
+\end{idea}
+
+\begin{enumerate}
+\item Sketch $h_0$ and $h_1$ on one pair of axes, at the same $\tau$. Label both values at $t = 0$ and the time and height of each peak.
+\item For $n = 2$, without repeating the integral: where is the peak, what is $h_2(0)$, and is this peak earlier or later than the peak of $h_1$?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{A longer synaptic time constant}
+
+\begin{idea}
+For $n = 0$, $H(\omega) = 1/(1 + i\omega\tau)$ and the cutoff is $f_c = 1/(2\pi\tau)$. Increasing $\tau$ makes the unit-area kernel wider. Spikes are averaged over a longer interval, so the decoded trace loses rapid jitter. The same widening adds lag and pulls down the gain on fast parts of the signal. Residual spike noise is still there after filtering. Distortion is the lag and the attenuation of the signal itself.
+\end{idea}
+
+\begin{enumerate}
+\item With $n = 0$, give two changes in the decoded time trace when $\tau$ increases, and the mechanism for each.
+\item One fixed $n = 0$ filter and one fixed decoder are used on two inputs of equal RMS, one band-limited to $2\,\mathrm{Hz}$ and one to $12\,\mathrm{Hz}$. Both stay inside the trained range. Explain why the slower input is usually tracked more faithfully. Separate signal distortion from leftover spike noise. Three or four sentences.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{The decoder, as a matrix}
+
+\begin{idea}
+$A$ is $n \times N$: neurons by training samples. $X$ is $d \times N$. The noise-regularized identity decoder is
+\[
+D^{\T} = (AA^{\T} + N\sigma^2 I_n)^{-1} A X^{\T}, \qquad D \in \mathbb{R}^{d \times n}.
+\]
+The matrix being inverted is $n \times n$. The penalty uses the sample count $N$, not the neuron count.
+\end{idea}
+
+\begin{enumerate}
+\item A population of $n$ neurons represents a $d$-dimensional variable, with $N$ training samples. Write $D$ and state the shape of $A$, of $X$, of the matrix being inverted, and of $D$.
+\item Now $A$ is $40 \times 1000$ and $X$ is $2 \times 1000$, with $\sigma = 0.1$. What are $n$, $d$, and $N$? What is inverted, and what is the shape of $D$?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{A decoder small enough to finish}
+
+\begin{idea}
+For one neuron, $AA^{\T}$ and $AX^{\T}$ are ordinary sums of products across the samples. The penalty $N\sigma^2$ is added to $AA^{\T}$ before dividing. Regularization makes $|d|$ smaller. The decoder has units of seconds when $A$ is in hertz. RMSE is the square root of the average squared error on the training samples.
+\end{idea}
+
+\begin{enumerate}
+\item One neuron, two samples: activities $A = (2,\ 4)$, targets $X = (1,\ 2)$. Find the unregularized decoder. Then find the decoder whose penalty term $N\sigma^2$ equals $10$. On the clean samples, which decoded values does each decoder produce?
+\item One neuron, three samples: activities $(1,\ 1,\ 2)$, targets $(1,\ 1,\ 4)$, unregularized. Find $d$, the three decoded values, and the RMSE.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Spike counts and the factor of $\Delta t$}
+
+\begin{idea}
+Lecture~4 stores a discrete delta at height $1/\Delta t$ so that its area, height times $\Delta t$, equals $1$. A bin count $b_{ik}$ is already that area: $0$ or $1$, not a height. Samples $h_k$ of a continuous unit-area PSC are in $\mathrm{s}^{-1}$. The filtered rate is one copy of $h$ per spike,
+\[
+s_{ik} = \sum_j b_{ij}\, h_{k-j},
+\]
+with $h_m = 0$ for $m < 0$. The Riemann sum $\sum (b_{ij}/\Delta t)\, h_{k-j}\, \Delta t$ cancels $\Delta t$, so the count formula does not contain another one. Then $s$ is in hertz and the rate decoder applies directly.
+\end{idea}
+
+\begin{enumerate}
+\item Write $s_{ik}$ as a sum over bins. State whether an extra $\Delta t$ belongs in that sum, and connect the formula to the impulse-height convention in two sentences.
+\item Spikes are stored as $1$s, $\Delta t = 1\,\mathrm{ms}$, and someone normalizes the kernel samples so that they sum to $1$ rather than using $h(t_k)$ in $\mathrm{s}^{-1}$. A neuron fires steadily at $100\,\mathrm{Hz}$. What value does this filtered train settle near, what value should a rate decoder see, and where can the missing factor be inserted? Name the three legal places.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{From a function decoder to weights}
+
+\begin{idea}
+Population B encodes $y$ with $J_i = \alpha_i \langle e_i, y \rangle + \Jb_i$. Substituting the estimate $\hat{y} = D^f a$ from population A makes the current a weighted sum of A's rates. The weight from pre-neuron $j$ to post-neuron $i$ is $w_{ij} = \alpha_i \langle e_i, d^f_j \rangle$, where $d^f_j$ is column $j$ of $D^f$. With row $i$ of $E$ equal to $\alpha_i e_i^{\T}$, one has $W^f = ED^f$. Bias is added once, outside $W^f$.
+\end{idea}
+
+\begin{enumerate}
+\item Population B has one neuron with $\alpha = 3$, unit encoder $e = +1$, and $\Jb = 1$. The function decoder from two presynaptic neurons is $d^f = (0.2,\ -0.1)$. Find both weights and write $J$ in terms of the two rates $a_1$ and $a_2$.
+\item Population A has $n = 10$ neurons. The decoded function is $q = 3$ dimensional. Population B has $m = 4$ neurons. State the shapes of $D^f$, $E$, and $W^f$.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{A target of the form $2x+1$}
+
+\begin{idea}
+The least-squares decoder is linear in the target. Decoding $af + bg$ uses $aD^f + bD^g$. In particular $D^{2x+1} = 2D + D^{\mathbf{1}}$, where $D^{\mathbf{1}}$ is the decoder whose target is the constant function $1$. The decoder $2D$ alone reconstructs $2x$ and misses the offset.
+\end{idea}
+
+\begin{enumerate}
+\item An identity decoder is $d = (0.4,\ -0.4)$. A decoder for the constant function $1$ is $d^{\mathbf{1}} = (0.1,\ 0.1)$. Find the decoder for $2x + 1$. Why is $2d$ not that decoder?
+\item An identity decoder is $d = (1,\ -1)$ and $d^{\mathbf{1}} = (0.5,\ 0.5)$. Find the decoder for $-x + 2$.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Staying inside the trained range}
+
+\begin{idea}
+A population trained on an interval has decoders and tuning that were fitted there. If the target spends time outside that interval, the decoded output is an extrapolation: neurons saturate or sit near rates the decoders never saw, and the error grows. There is no requirement that the voltage or the rate hard-clips at the edge of the interval. If the whole target stays inside the interval, this particular limitation does not apply.
+\end{idea}
+
+\begin{enumerate}
+\item Population B was trained on $[-1,\ 1]$. The connection implements $y = 2x + 1$ with $x(t) = \sin(2\pi t)$. Give the range of the desired $y$ and the resulting limitation.
+\item The same population and the same $x(t)$ now implement $y = \tfrac12 x$. Give the range of $y$. Does the trained-range limitation apply?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Addition and multiplication}
+
+\begin{idea}
+Currents from separate populations add, so two incoming connections compute a function of $x$ alone plus a function of $y$ alone. A product $xy$ is not of that form. Represent $(x, y)$ together in one two-dimensional population, then decode the product. A nonlinearity of a single variable, such as $y^2$, is a function decoder on that variable's own population. And $(x+y)^2$ can be computed by summing first, then squaring the scalar sum. Decoding $x^2$ and $y^2$ from the separate populations and adding those currents misses the cross term $2xy$.
+\end{idea}
+
+\begin{enumerate}
+\item Draw the population-level network for $z = 4y - x$. External $x$ and $y$ begin as separate scalar populations. Label the dimension of every added population and the transformation on every connection.
+\item Draw the network for $p = xy$, with the same rule for labels.
+\item Draw the network for $q = y^2$. Explain in one sentence why this one does not need a two-dimensional population.
+\item Someone adds a decoded $x^2$ to a decoded $y^2$ and hopes to obtain $(x+y)^2$. Explain what is missing. Then draw a network that does compute $(x+y)^2$ from the two scalar populations.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{The optimal filter in time}
+
+\begin{idea}
+The optimal $h(t)$ is nonzero for $t < 0$. Using it requires future spikes, so it is acausal: fine for offline analysis of a recording, and not a model of a synapse. Smoothing $H(\omega)$ by convolution against a window $W(\omega)$ multiplies $h(t)$ by a time window, which shortens and smooths $h$.
+\end{idea}
+
+\begin{enumerate}
+\item Say what ``acausal'' means for the optimal $h(t)$, why an offline decode may use it, and why a biological synapse cannot.
+\item The windowed filter replaces $X\overline{R}$ and $|R|^2$ by their convolutions with $W(\omega)$. What does that operation do to $h(t)$, and why?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Three questions that each use two ideas}
+
+\begin{trythis}
+These are the first questions in the set that are allowed to feel like the practice test. Attempt all three before opening their solutions.
+\end{trythis}
+
+\begin{enumerate}
+\item On $T = 1\,\mathrm{s}$ the only nonzero coefficients are $X(\pm 2\pi) = 2 + 2i$, already conjugate-symmetric. Write $x(t)$ as a sine and a cosine. Find the RMS.
+\item Both neurons use $J = ex + 1$ at the constant input $x = 0$. Describe both voltage traces. Do not assume that $J = 1$ produces spikes.
+\item Draw the network for $z = y^2 + x$, starting from separate scalar populations for $x$ and $y$. Say why a two-dimensional population is unnecessary here, whereas it was necessary for $xy$.
+\end{enumerate}
+
+\vspace{8pt}
+When every second question above can be done from a blank page, redo Practice Test~2 with the solutions to both papers closed. The original test is the same ideas with the hints removed.
+
+\end{document}
