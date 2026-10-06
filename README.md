@@ -16,7 +16,7 @@ Slides and notes will be linked here as the term progresses.
 - Sep 17, 22 - Population Representation [[Slides](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_03/syde556_lecture_03_slides_distr.pdf)] [[Notes](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_03/syde556_lecture_03_notes.pdf)]
 - Sep 24, 29 - Temporal Representation [[Slides](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_04/syde556_lecture_04_slides_distr.pdf)] [[Notes](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_04/syde556_lecture_04_notes.pdf)]
 - Oct 1, 6 - Feedforward Transformations [[Slides](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_05/syde556_lecture_05_slides_distr.pdf)] [[Notes](https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_05/syde556_lecture_05_notes.pdf)]
-- Oct 8 - Nengo Tutorial [[Install Nengo](https://www.nengo.ai/getting-started/)]
+- Oct 8 - Nengo Tutorial [[Install Nengo](https://www.nengo.ai/getting-started/)] [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/nengo_tutorial/nengo_tutorial_no_gui.ipynb)]
 - Oct 20, 22 - Recurrent Dynamics [[Slides]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_06/syde556_lecture_06_slides_distr.pdf)-->] [[Notes]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_06/syde556_lecture_06_notes.pdf)-->]
 - Oct 27 - Temporal Basis Functions [[Slides]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_07/syde556_lecture_07_slides_distr.pdf)-->] [[Notes]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_07/syde556_lecture_07_notes.pdf)-->] [[LMU Overview]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_07/LMU%20Overview%20for%20SYDE%20556.pdf)-->]
 - Oct 29, Nov 3, 5 - Learning [[Slides]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_08/syde556_lecture_08_slides_distr.pdf)-->] [[Notes]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_08/syde556_lecture_08_notes.pdf)-->] [[Neuromorphics Bonus]<!--(https://github.com/celiasmith/syde556-f26/raw/master/lectures/lecture_05/neuromorphics_intro_2022.pdf)-->] [[Adaptive Control Example]<!--(https://github.com/tcstewar/nengo_learning_examples/blob/master/control/pendulum_pd_adaptive.py)-->] (project proposal due Oct 29)
@@ -45,7 +45,7 @@ PN3 onward uses Nengo.
 
 - PN1 - Neurons and Population Representation [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN1_neurons_and_population.ipynb)]
 - PN2 - Temporal Representation and Transformations [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN2_temporal_and_transformations.ipynb)]
-- PN3 - Nengo and Simple Dynamics [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb)-->]
+- PN3 - Nengo and Simple Dynamics [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb)]
 - PN4 - Decision Making, Learning, and the LMU [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN4_decision_learning_and_lmu.ipynb)-->]
 - PN5 - Symbols and the Semantic Pointer Architecture [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN5_symbols_and_spa.ipynb)-->]
 - PN6 - Spatial Semantic Pointers [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN6_spatial_semantic_pointers.ipynb)-->]
@@ -60,7 +60,7 @@ of the six marks is dropped.
 |---|---|---|---|
 | [PN1](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN1_neurons_and_population.ipynb) | Sep 10 | T1 | Sep 24 |
 | [PN2](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN2_temporal_and_transformations.ipynb) | Sep 22 | T2 | Oct 8 |
-| PN3 | Oct 6 | T3 | Oct 29 |
+| [PN3](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb) | Oct 6 | T3 | Oct 29 |
 | PN4 | Oct 27 | T4 | Nov 12 |
 | PN5 | Nov 10 | T5 | Nov 26 |
 | PN6 | Nov 24 | T6 | Dec 3 |
