@@ -45,7 +45,7 @@ PN3 onward uses Nengo.
 
 - PN1 - Neurons and Population Representation [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN1_neurons_and_population.ipynb)]
 - PN2 - Temporal Representation and Transformations [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN2_temporal_and_transformations.ipynb)]
-- PN3 - Nengo and Simple Dynamics [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb)-->]
+- PN3 - Nengo and Simple Dynamics [[Notebook](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb)]
 - PN4 - Decision Making, Learning, and the LMU [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN4_decision_learning_and_lmu.ipynb)-->]
 - PN5 - Symbols and the Semantic Pointer Architecture [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN5_symbols_and_spa.ipynb)-->]
 - PN6 - Spatial Semantic Pointers [[Notebook]<!--(https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN6_spatial_semantic_pointers.ipynb)-->]
@@ -60,7 +60,7 @@ of the six marks is dropped.
 |---|---|---|---|
 | [PN1](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN1_neurons_and_population.ipynb) | Sep 10 | T1 | Sep 24 |
 | [PN2](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN2_temporal_and_transformations.ipynb) | Sep 22 | T2 | Oct 8 |
-| PN3 | Oct 6 | T3 | Oct 29 |
+| [PN3](https://github.com/celiasmith/syde556-f26/raw/master/practice_notebooks/556_PN3_nengo_and_simple_dynamics.ipynb) | Oct 6 | T3 | Oct 29 |
 | PN4 | Oct 27 | T4 | Nov 12 |
 | PN5 | Nov 10 | T5 | Nov 26 |
 | PN6 | Nov 24 | T6 | Dec 3 |
