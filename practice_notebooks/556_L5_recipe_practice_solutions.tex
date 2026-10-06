@@ -1,0 +1,176 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Recipe practice}
+\rhead{Solutions}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\ans}[1]{\par\vspace{2pt}{\bfseries #1}\quad}
+
+\newtcolorbox{result}{colback=Green!6,colframe=Green!50!black,boxrule=0.5pt,left=4pt,right=4pt,top=2pt,bottom=2pt,arc=1pt}
+
+\setlist[enumerate]{leftmargin=1.5em,itemsep=2pt,topsep=2pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Recipe practice solutions}\\[2pt]
+{\large Feedforward transformations}\\[4pt]
+Open a solution only after attempting that question. Each green box is the result.
+\end{center}
+
+%---------------------------------------------------------------------
+\section{One pass through all four steps}
+
+\ans{1.}
+The input currents are linear in the represented scalar:
+\[
+J_1^{A} = x + 1, \qquad J_2^{A} = -x + 1.
+\]
+The output currents are the same kind of encoding, written in $y$ rather than $x$:
+\[
+J_1^{B} = 2y + \tfrac12, \qquad J_2^{B} = -y + 1.
+\]
+The activities of A are already given, so these input currents are not turned back into rates.
+\begin{result}
+$J_1^A = x + 1$, $J_2^A = -x + 1$. \quad $J_1^B = 2y + 1/2$, $J_2^B = -y + 1$.
+\end{result}
+
+\ans{2.}
+The value represented by B is twice the value represented by A:
+\[
+y = 2x.
+\]
+\begin{result}
+$y = 2x$.
+\end{result}
+
+\ans{3.}
+Rows are neurons and columns are the inputs $x = 0$ and $x = 1$:
+\[
+A = \begin{pmatrix} 1 & 2 \\ 2 & 1 \end{pmatrix}, \qquad
+Y = \begin{pmatrix} 0 & 2 \end{pmatrix}.
+\]
+\[
+AA^{\mathsf T} = \begin{pmatrix} 5 & 4 \\ 4 & 5 \end{pmatrix}, \qquad
+(AA^{\mathsf T})^{-1} = \frac19 \begin{pmatrix} 5 & -4 \\ -4 & 5 \end{pmatrix}, \qquad
+AY^{\mathsf T} = \begin{pmatrix} 4 \\ 2 \end{pmatrix}.
+\]
+\[
+(D^f)^{\mathsf T}
+  = \frac19 \begin{pmatrix} 5 & -4 \\ -4 & 5 \end{pmatrix}
+    \begin{pmatrix} 4 \\ 2 \end{pmatrix}
+  = \begin{pmatrix} 4/3 \\ -2/3 \end{pmatrix},
+\qquad
+D^f = \begin{pmatrix} 4/3 & -2/3 \end{pmatrix}.
+\]
+On the two samples, $a = (1, 2)$ and $a = (2, 1)$:
+\[
+D^f a = 0 \quad \text{and} \quad D^f a = 2,
+\]
+which are $2x$ at $x = 0$ and $x = 1$. Two neurons and two samples, with this invertible $A$, can hit both targets exactly.
+\begin{result}
+$D^f = (4/3,\ -2/3)$. It reproduces $(0,\ 2)$.
+\end{result}
+
+\ans{4.}
+The output encoders, with gains included, are the rows of
+\[
+E = \begin{pmatrix} 2 \\ -1 \end{pmatrix}.
+\]
+\[
+W^f = E D^f
+  = \begin{pmatrix} 2 \\ -1 \end{pmatrix}
+    \begin{pmatrix} 4/3 & -2/3 \end{pmatrix}
+  = \begin{pmatrix} 8/3 & -4/3 \\ -4/3 & 2/3 \end{pmatrix}.
+\]
+Biases stay outside the matrix:
+\[
+J_1^{B} = \tfrac83 a_1 - \tfrac43 a_2 + \tfrac12, \qquad
+J_2^{B} = -\tfrac43 a_1 + \tfrac23 a_2 + 1.
+\]
+At $x = 1$ the activities are $a_1 = 2$, $a_2 = 1$, and $2x = 2$.
+From the weights,
+\[
+J_1^{B} = \tfrac83\cdot 2 - \tfrac43\cdot 1 + \tfrac12 = \tfrac92, \qquad
+J_2^{B} = -\tfrac43\cdot 2 + \tfrac23\cdot 1 + 1 = -1.
+\]
+From the output encoding with $y$ replaced by $2x$,
+\[
+J_1^{B} = 2\cdot 2 + \tfrac12 = \tfrac92, \qquad
+J_2^{B} = -2 + 1 = -1.
+\]
+Same currents. That is the substitution the fourth step asks for.
+\begin{result}
+$W^f = \begin{pmatrix} 8/3 & -4/3 \\ -4/3 & 2/3 \end{pmatrix}$.
+At $x = 1$ both routes give $J = (9/2,\ -1)$.
+\end{result}
+
+%---------------------------------------------------------------------
+\section{Same populations, new function}
+
+\ans{1.}
+The encodings of A and of B were fixed by the populations, so step 1 is unchanged. Step 2 is a new sentence, $y = x + 1$. Steps 3 and 4 use that new target, so $Y$, $D^f$, and $W^f$ are recomputed. $E$ and the biases belong to B and stay put.
+\begin{result}
+Copy step 1, and copy $E$. Redo the transformation, $D^f$, and $W^f$.
+\end{result}
+
+\ans{2.}
+\[
+Y = \begin{pmatrix} 1 & 2 \end{pmatrix}, \qquad
+AY^{\mathsf T} = \begin{pmatrix} 5 \\ 4 \end{pmatrix}.
+\]
+\[
+(D^f)^{\mathsf T}
+  = \frac19 \begin{pmatrix} 5 & -4 \\ -4 & 5 \end{pmatrix}
+    \begin{pmatrix} 5 \\ 4 \end{pmatrix}
+  = \begin{pmatrix} 1 \\ 0 \end{pmatrix},
+\qquad
+D^f = \begin{pmatrix} 1 & 0 \end{pmatrix}.
+\]
+The second input neuron receives a decoder of zero for this particular target. That is a fact about these samples, not a rule about constant offsets.
+\begin{result}
+$D^f = (1,\ 0)$.
+\end{result}
+
+\ans{3.}
+\[
+W^f = \begin{pmatrix} 2 \\ -1 \end{pmatrix}
+      \begin{pmatrix} 1 & 0 \end{pmatrix}
+    = \begin{pmatrix} 2 & 0 \\ -1 & 0 \end{pmatrix}.
+\]
+\[
+J_1^{B} = 2 a_1 + \tfrac12, \qquad
+J_2^{B} = -a_1 + 1.
+\]
+At $x = 1$, $a_1 = 2$ and $y = 2$, so $J_1^{B} = 9/2$ and $J_2^{B} = -1$, which is $\alpha e y + \Jb$ for each neuron of B.
+\begin{result}
+$J_1^B = 2a_1 + 1/2$, \ $J_2^B = -a_1 + 1$.
+\end{result}
+
+\ans{4.}
+\[
+d + d^{\mathbf 1}
+  = \bigl(\tfrac23,\ -\tfrac13\bigr) + \bigl(\tfrac13,\ \tfrac13\bigr)
+  = (1,\ 0),
+\]
+which is the decoder from part 2. Least squares is linear in the target, and $x + 1$ is the identity plus the constant function. The identity decoder alone reconstructs $x$. Substituting that into B would encode $x$, and the $+1$ would be missing.
+\begin{result}
+$d + d^{\mathbf 1} = (1,\ 0)$. The identity decoder implements $y = x$.
+\end{result}
+
+\end{document}
