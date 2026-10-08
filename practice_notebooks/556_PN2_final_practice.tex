@@ -1,0 +1,154 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Final practice}
+\rhead{Function decoders and filters}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\T}{\mathsf T}
+
+\newtcolorbox{idea}[1][]{colback=gray!8,colframe=gray!55,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=#1}
+
+\setlist[enumerate]{label=(\alph*),leftmargin=1.8em,itemsep=5pt,topsep=4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Final practice set: function decoders and filters}\\[2pt]
+{\large PN2, Lectures 4--5}\\[4pt]
+{\normalsize Questions. Solutions, with plots, are in a separate file. Leave that file closed.}
+\end{center}
+
+\subsection*{How to use this}
+
+Every question uses a setup you have not seen in the earlier sheets. The skills are the same: build $A$ and the target, solve for a decoder, push it into weights, and reason about what a synaptic or optimal filter does to a signal. Sketch whenever a question says ``sketch'', with labelled axes. No calculator is needed beyond the numbers below.
+
+\begin{idea}[Useful numbers]
+$e^{-1} \approx 0.368$, \ $e^{-2} \approx 0.135$, \ $e^{-3} \approx 0.050$, \ $e^{-0.25} \approx 0.779$, \ $\pi \approx 3.14$, \ $\ln 10 \approx 2.30$, \\
+$\sqrt{0.9} \approx 0.949$, \ $-\ln(0.051) \approx 2.97$, \ $\sqrt{1.394} \approx 1.181$, \ $\sqrt{40.4} \approx 6.36$.
+\end{idea}
+
+\begin{idea}[Formulas you may quote]
+Function decoder: \ $(D^f)^\T = (AA^\T + N\sigma^2 I)^{-1} A F^\T$, \ column $k$ of $F$ is $f(x_k)$. \\
+Weights: \ $W^f = E D^f$, \ row $i$ of $E$ is $\alpha_i e_i^\T$, \ $J = W^f a + \Jb$. \\
+Normalized PSC: \ $h_n(t) = t^n e^{-t/\tau} / (n!\,\tau^{n+1})$ for $t \ge 0$, \ $|H_n(\omega)| = (1 + \omega^2\tau^2)^{-(n+1)/2}$, \ mean delay $(n+1)\tau$.
+\end{idea}
+
+%---------------------------------------------------------------------
+\section{Decoders from kinked tuning curves \hfill [function decoders]}
+
+Three rate neurons represent a scalar $x \in [-1, 1]$:
+\[
+a_1 = \max(x,\ 0), \qquad a_2 = \max(-x,\ 0), \qquad a_3 = \max(x + 1,\ 0).
+\]
+Train on the three inputs $x = (-1,\ 0,\ 1)$.
+
+\begin{enumerate}
+\item Form $A$ (rows are neurons, columns are samples). Sketch the three tuning curves on $[-1, 1]$. Which neuron has its kink inside the interval, and which neuron is a straight line on the whole interval?
+\item Find exact decoders, by matching all three samples, for $f(x) = x$, \ $f(x) = |x|$, and $f(x) = 1$. Then explain in one sentence why the unregularized least-squares formula would give the same answers here.
+\item Without solving anything new, write the decoder for $f(x) = 3x - 2$. Verify it at $x = 1/2$, which is not a training input.
+\item Now use the target $f(x) = x^2$ on the same three samples. Which decoder do you get? Evaluate the decoded value at $x = 1/2$ and compare with $(1/2)^2$. What went wrong?
+\item Show that for any decoder $(p, q, r)$ the decoded value on $[-1, 1]$ has the form $c_0 + c_1 x + c_2 |x|$. Fit $x^2$ over the whole interval instead of three samples: by symmetry $c_1 = 0$, so fit $c_0 + c_2 x$ to $x^2$ on $[0, 1]$ in least squares. Convert the result into a decoder $(p, q, r)$. Where is its error largest?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{What the noise penalty buys \hfill [regularized decoder]}
+
+A single neuron fires at $a = 1$ when $x = 1$ and at $a = 2$ when $x = 2$. Decode $x$ with one coefficient $d$, so $\hat x = d\,a$. There are $N = 2$ samples.
+
+\begin{enumerate}
+\item Find the unregularized decoder. What are the decoded values at the two samples?
+\item Find the regularized decoder for $\sigma^2 = 2.5$. What are the decoded values now? In which direction did the decoder move?
+\item Suppose each recorded rate carries independent noise of variance $\sigma^2 = 2.5$, so the decoded value carries noise of variance $d^2\sigma^2$. Write the expected squared error $E(d)$ as the clean error averaged over the two samples plus this noise term. Evaluate $E(1)$ and $E(1/2)$. Which is smaller?
+\item Minimize $E(d)$ and show the minimizer is the decoder you found in (b). Sketch the clean error, the noise error, and the total against $d$.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{A two-dimensional function, then weights \hfill [vector decoders]}
+
+Reuse the population from Question 1. The connection should send the vector $y = f(x) = (x,\ |x|)^\T$ to a population B of three neurons:
+
+\begin{center}
+\begin{tabular}{cccc}
+B neuron & gain $\alpha$ & unit encoder $e$ & $\Jb$ \\ \hline
+1 & 2 & $(1,\ 0)$ & $1/2$ \\
+2 & 1 & $(0,\ 1)$ & $1$ \\
+3 & 3 & $(-1,\ 0)$ & $0$
+\end{tabular}
+\end{center}
+
+\begin{enumerate}
+\item Write $D^f$ using your answers to Question 1(b). State its shape.
+\item Write $E$ and state its shape. Then compute $W^f = E D^f$ and state its shape.
+\item One column of $W^f$ is zero. Which one, and why does that pre-neuron get no weight for this function?
+\item At $x = -1$, compute B's three currents twice: from $W^f a + \Jb$, and from $\alpha_i \langle e_i, y \rangle + \Jb_i$ with the true $y$. They should agree.
+\item Dale's principle says each pre-neuron should be either excitatory or inhibitory onto all of its targets. Which pre-neurons violate it in $W^f$?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{An exponential synapse on a regular spike train \hfill [synaptic filter]}
+
+Use $h_0(t) = e^{-t/\tau}/\tau$ for $t \ge 0$, with $\tau = 5$ ms. The filtered activity is $s(t) = \sum_k h_0(t - t_k)$.
+
+\begin{enumerate}
+\item A neuron spikes at $t = 0,\ 5,\ 10$ ms and then stops. Compute $s(10^-)$, \ $s(10^+)$, and $s(15^-)$ with units. Sketch $s(t)$ from $0$ to $30$ ms.
+\item Now the neuron spikes every $T = 5$ ms forever. In steady state, every spike lands on the same trough and jumps to the same peak $P$. Use $P = P e^{-T/\tau} + 1/\tau$ to find $P$ and the trough.
+\item Show that the average of $s(t)$ over one steady-state period is exactly $1/T$. Which property of $h_0$ makes this true?
+\item Repeat (b) with $\tau = 20$ ms. Compare the peak-to-trough ripple and the mean with the $\tau = 5$ ms case. With a decoder coefficient $d = 0.004$, what are the decoded mean and ripple for each $\tau$? What does the larger $\tau$ cost?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Two synapses with the same delay \hfill [filter shape]}
+
+Filter A is $h_0$ with $\tau = 10$ ms. Filter B is $h_1$ with $\tau = 5$ ms.
+
+\begin{enumerate}
+\item Show that both filters have the same mean delay.
+\item Compute $|H|$ for both filters at $f = 10$ Hz (a signal frequency) and at $f = 100$ Hz (where spike noise lives). Use $\omega = 2\pi f$.
+\item Which filter is better on both counts? Sketch both kernels on common axes, and state one way filter B responds worse to a sudden change.
+\item The input is bandlimited to 10 Hz. Why does the spike train still have power at 100 Hz?
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{The optimal filter when the response is amplified \hfill [optimal filter]}
+
+The signed response of an opponent pair is $R = gX + \eta$, where $g > 0$ is a gain, $S_X = \langle |X|^2 \rangle$, $S_\eta = \langle |\eta|^2 \rangle$, and $\langle X \eta^* \rangle = 0$.
+
+\begin{enumerate}
+\item Expand $H = \langle X R^* \rangle / \langle |R|^2 \rangle$ to get $H$ in terms of $g$, $S_X$, $S_\eta$.
+\item What does $H$ become when $S_\eta \to 0$? When $S_X = 0$? Interpret both.
+\item Let $S_X = 1$ for $|f| \le 5$ Hz and $0$ otherwise, with $S_\eta = 4$ at all frequencies. Compute the in-band $H$ for $g = 1,\ 2,\ 4$ and the out-of-band $H$.
+\item The input reaches the output through $gH$. Compute $gH$ for the three gains. Why can $g = 1$ and $g = 4$ have the same $H$ but very different output quality? Sketch $gH$ against $f$.
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Filter first or square first? \hfill [filters in a chain]}
+
+Population C should represent $x^2$. The input $x(t)$ steps from $0$ to $1$ at $t = 0$. Assume every decoder is exact, neurons respond instantly, and every synapse is $h_0$ with the same $\tau$, so a step passed through one synapse becomes $1 - e^{-t/\tau}$.
+
+Route 1 connects A to C with a decoder for $x^2$. \
+Route 2 connects A to B with the identity, then B to C with a decoder for $x^2$.
+
+\begin{enumerate}
+\item Route 1: write the signal entering C and evaluate it at $t = \tau$.
+\item Route 2: write the value B represents, and the value B's $x^2$ decoder produces, before the second synapse. Evaluate the second at $t = \tau$.
+\item Both routes decode $x^2$, so why do (a) and (b) differ? When would they agree?
+\item After the second synapse, Route 2 delivers $1 - 2(t/\tau) e^{-t/\tau} - e^{-2t/\tau}$ to C. Evaluate it at $t = \tau$ and rank the three signals.
+\item Find the time for Route 1 to reach $0.9$, and the time for B's decoded $x^2$ in Route 2 to reach $0.9$. Sketch all three signals against $t/\tau$.
+\end{enumerate}
+
+\end{document}
