@@ -2,7 +2,7 @@
 \documentclass[10pt,letterpaper,oneside]{article}
 \input{../syde556_lecture_notes_preamble}
 
-\date{October 7 \& 9th, 2024}
+\date{October 20 \& 22nd, 2026}
 \title{SYDE 556/750 \\ Simulating Neurobiological Systems \\ Lecture 6: Recurrent Dynamics}
 
 
@@ -76,7 +76,7 @@ We can use the same setup as above to implement the recurrent connection depicte
 			+ J^\mathrm{bias}_i \,,
 			& \text{where } \vec w^A_i = \big( \mat E \mat D^{g} \big)_i \text{ and } \vec w^B_i = \big( \mat E \mat D^{f} \big)_i \,.
 \end{align*}
-Notice that apart from names, there is virtually no difference between the previous two equations. The population $B$ approximately represents the value $\vec x = g(\vec u) + f(\vec x)$. In terms of control theory, the variable $\vec u$ is the \emph{input} to our system, whereas the variable $\vec x$ is the represented value. The function $g(\vec x)$ is a function transforming our input, the function $f(\vec x)$ is the \emph{feedback function}.
+Notice that apart from names, there is virtually no difference between the previous two equations. The population $B$ approximately represents the value $\vec x = g(\vec u) + f(\vec x)$. In terms of control theory, the variable $\vec u$ is the \emph{input} to our system, whereas the variable $\vec x$ is the represented value. The function $g(\vec u)$ is a function transforming our input, the function $f(\vec x)$ is the \emph{feedback function}.
 
 \Note{When implementing a computer simulation that contains recurrent connections, each occurrence of a population pre-activity $\vec a_\mathrm{pre}$ should be interpreted as the pre-population activity from the last timestep.
 
@@ -109,7 +109,7 @@ Note that this will introduce a delay of one timestep each time a new set of pop
 	\label{fig:dynamics_example}
 \end{figure}
 
-The above equations illustrate how recurrent connections are implemented and what the represented value of the recurrently connection is. To get some intuition for the dynamics of such a system, we can test different feedback functions $f(\vec x)$. \Cref{fig:dynamics_example} depicts the behaviour of a population of LIF neurons representing a one-dimensional value along with various feedback functions and various synaptic filter time constants.
+The above equations illustrate how recurrent connections are implemented and what the represented value of the recurrent connection is. To get some intuition for the dynamics of such a system, we can test different feedback functions $f(\vec x)$. \Cref{fig:dynamics_example} depicts the behaviour of a population of LIF neurons representing a one-dimensional value along with various feedback functions and various synaptic filter time constants.
 
 \Note{The synaptic filter $h(t)$ we are using here is the exponential low pass
 \begin{align}
@@ -210,7 +210,7 @@ Converting back to the time domain we get the following differential equation
 	\frac{\mathrm{d}}{\mathrm{d}t} x(t) &= \frac{1}{\tau} \big(g(u(t)) + f(x(t)) - x(t) \big) \,.
 	\label{eqn:recurrent_dynamics}
 \end{ImportantEqn}
-\Note{\emph{Canonical dynamical system, phase portraits, and equilibria.} The canonical form of time-independent a dynamical system
+\Note{\emph{Canonical dynamical system, phase portraits, and equilibria.} The canonical form of a time-independent dynamical system
 \begin{align*}
 	\frac{\mathrm{d}}{\mathrm{d}t} \vec x(t) &= \phi(\vec u(t), \vec x(t)) \,
 \end{align*}
