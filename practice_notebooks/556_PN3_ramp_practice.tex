@@ -1,0 +1,341 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{pgfplots}
+\pgfplotsset{
+  compat=1.18,
+  every axis/.append style={grid=major, grid style={gray!25}, tick label style={font=\footnotesize},
+    label style={font=\small}, title style={font=\small}, legend style={font=\scriptsize}},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Ramp practice}
+\rhead{Nengo, vectors, and recurrent dynamics}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\Jb}{J^{\mathrm{bias}}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\tin}{\tau_{\mathrm{in}}}
+
+\newtcolorbox{idea}{colback=gray!8,colframe=gray!55,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=Idea for this section}
+\newtcolorbox{trythis}{colback=orange!6,colframe=orange!60!black,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt}
+
+\lstset{basicstyle=\ttfamily\small, columns=fullflexible, keepspaces=true, frame=single, rulecolor=\color{gray!50}, numbers=left, numberstyle=\tiny\color{gray}, xleftmargin=1.5em}
+
+\setlist[enumerate]{leftmargin=1.6em,itemsep=6pt,topsep=4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Practice set: one idea at a time}\\[2pt]
+{\large Nengo ensembles, vector transformations, and recurrent dynamics (up to Lecture 6)}\\[4pt]
+{\normalsize Questions. Solutions are in a separate file. Leave that file closed.}
+\end{center}
+
+\subsection*{How to use this}
+
+Test 3 covers Practice Notebook 3 and Lecture 6, and it will use everything from Tests 1 and 2 along the way. Part A rebuilds the pieces of the earlier material that Test 3 leans on. Part B introduces the dynamics principle one step at a time. Part C puts ideas back together.
+
+Each section states one idea, then asks two questions. The first question shows the move. The second changes the numbers, the sign, or the shape, so a memorized picture from the first one will not survive.
+
+\begin{enumerate}[leftmargin=1.4em]
+\item Read the idea box. Attempt the first question for about ten minutes.
+\item Open the solution for that question only. Read the working, close the file, and rewrite the answer on a blank page.
+\item Attempt the second question with the solutions closed. If it fails, the gap is the idea, not the arithmetic. Restate the idea box from memory, then try again before you read that solution.
+\item When every second question is possible from a blank page, write Practice Test~3 in 30 minutes, closed book.
+\end{enumerate}
+
+\begin{trythis}
+\textbf{Sketch checklist.} Tests 1 and 2 lost marks on sketches that had the right idea but were missing a feature. Before you finish any sketch, check:
+(1) both axes labelled, with units (rad/s versus Hz);
+(2) every value the question names is marked on the axis (cutoffs, peaks, thresholds, steady states, time constants);
+(3) every event is drawn (spike, reset, refractory hold, input switching on and off);
+(4) the starting value and the final value are correct.
+For ``describe the steps'' questions, write the last step too (inverse transform, rescale, decode, filter).
+\end{trythis}
+
+\textbf{Conventions.} Normalized LIF: threshold $1$, reset $0$. Rate $G(J) = \bigl[\tref - \trc\ln(1 - 1/J)\bigr]^{-1}$ for $J > 1$, and $0$ otherwise. Exponential synapse $h(t) = \tau^{-1}e^{-t/\tau}$ for $t \ge 0$. Laplace transform $F(s) = \int_0^\infty f(t)e^{-st}\,dt$. Unless a question says otherwise, the input and the recurrent connection use the same synapse $\tau$. Leave exponentials, logarithms and roots symbolic. Label every sketch axis.
+
+%=====================================================================
+\part*{Part A \quad Pieces of Tests 1 and 2 that Test 3 uses}
+%=====================================================================
+
+\section{The LIF tuning curve and its two time constants}
+
+\begin{idea}
+The rate curve $G(J) = \bigl[\tref - \trc\ln(1 - 1/J)\bigr]^{-1}$ is zero up to $J = 1$, rises with infinite slope just above threshold, and can never exceed the ceiling $1/\tref$. Nengo does not ask you for gain and bias. You give it an intercept and a maximum rate, and it solves for $\alpha$ and $\Jb$. So when $\tref$ or $\trc$ changes and the intercept and maximum rate are held fixed, the endpoints of each tuning curve stay put and only the shape between them changes. A curve that is closer to a straight line is easier to combine into the identity, so its RMSE is lower.
+\end{idea}
+
+\begin{enumerate}
+\item Take $\tref = 2\,\mathrm{ms}$, $\trc = 20\,\mathrm{ms}$. Write the rate at $J = 2$ symbolically. Find the ceiling as $J \to \infty$. A Nengo ensemble is asked for maximum rates up to $200\,\mathrm{Hz}$ with $\tref = 5\,\mathrm{ms}$. What goes wrong?
+\item One neuron has intercept $0$ and maximum rate $200\,\mathrm{Hz}$ at $x = 1$, with $\trc = 20\,\mathrm{ms}$. Sketch its tuning curve on $x \in [-1, 1]$ for $\tref = 1\,\mathrm{ms}$ and for $\tref = 4\,\mathrm{ms}$ on the same axes. Which is more curved, and why? Which population would have the larger identity-decoding RMSE? Then answer the same two questions for $\trc = 10\,\mathrm{ms}$ versus $\trc = 100\,\mathrm{ms}$ at $\tref = 2\,\mathrm{ms}$.
+\end{enumerate}
+
+\section{The radius}
+
+\begin{idea}
+An ensemble with radius $r$ represents $x/r$ internally. The tuning curves are the radius-$1$ curves stretched horizontally by $r$, and the decoders are the radius-$1$ decoders multiplied by $r$. So every decoding error is multiplied by $r$: $\mathrm{RMSE}(r) = r\cdot\mathrm{RMSE}(1)$. The radius is a statement about the range you expect. Outside it, the neurons saturate and the decoder is extrapolating.
+\end{idea}
+
+\begin{enumerate}
+\item A 1-D ensemble with radius $1$ has RMSE $0.0055$. The seed, the relative intercepts, and the maximum rates are fixed. Predict the RMSE for radii $0.5$, $2$, and $4$, and sketch RMSE against radius. Write the relationship as an equation.
+\item Why not always set a large radius ``to be safe''? Then: an ensemble with radius $1$ receives $x = 1.5$. Describe what the decoded value does, and why it is not exactly $1$.
+\end{enumerate}
+
+\section{Encoding a 2-D vector}
+
+\begin{idea}
+In $d$ dimensions the current is $J = \alpha\langle e, x\rangle + \Jb$ with a unit encoder $e$. The neuron only cares about the component of $x$ along $e$. Its tuning ``curve'' over the plane is a ramp along $e$ that is constant along the perpendicular direction. Among inputs of fixed length, it fires most for $x$ pointing along $e$.
+\end{idea}
+
+\begin{enumerate}
+\item Take $x = (0.6, 0.8)$, $\alpha = 2$, $\Jb = 1$, and encoders $e_1 = (1, 0)$, $e_2 = (0, 1)$, $e_3 = (-0.6, -0.8)$. Find all three currents. Which neurons fire? Which unit-length input makes neuron 3 fire fastest?
+\item A neuron has $e = (1/\sqrt2,\ 1/\sqrt2)$, $\alpha = 1$, $\Jb = 1/2$. Find the set of inputs in the unit disc for which it fires, and sketch it on the $(x_1, x_2)$ plane with the encoder drawn as an arrow.
+\end{enumerate}
+
+\section{Decoding a 2-D vector, with shapes}
+
+\begin{idea}
+Activities at one instant form a column $a \in \mathbb{R}^n$. The decoder has one row per output dimension: $D \in \mathbb{R}^{d \times n}$. So $\hat x = Da$ is a $(d \times n)$ rectangle times an $(n \times 1)$ column, giving a $(d \times 1)$ column. For training, $A$ is $n \times N$ and $X$ is $d \times N$. A function decoder for $f : \mathbb{R}^d \to \mathbb{R}^q$ is $q \times n$.
+\end{idea}
+
+\begin{enumerate}
+\item A population of $n = 10$ neurons represents a 2-D vector. Write $\hat x$ from the activity vector $a$, and draw each factor as a labelled rectangle with its dimensions. Write the regularized decoder formula and the shape of every matrix in it.
+\item From the same population, give the shape of the decoder for $f(x) = x_1 x_2$, and for $f(x) = (x_2, x_1)$. Express the second decoder in terms of the identity decoder $D$ without solving a new least-squares problem.
+\end{enumerate}
+
+\section{Linear transformations of vectors}
+
+\begin{idea}
+A connection with a scalar \texttt{transform} $c$ between two $d$-dimensional ensembles multiplies by $cI_d$. Several connections into one ensemble add. So $v = 2a - b + 3c$ is three connections with transforms $2$, $-1$, $3$. A matrix transform maps between different dimensions: a $(2 \times 1)$ transform puts a scalar into a 2-D ensemble. Always check that the result stays inside the output ensemble's radius; for a 2-D ensemble the radius bounds $\|v\|$, not each component.
+\end{idea}
+
+\begin{enumerate}
+\item Four 2-D ensembles, radius $1$, compute $v = 2a - b + 3c$ for constant inputs $a = (0.3, -0.2)$, $b = (0.4, 0.1)$, $c = (-0.1, 0.2)$. Compute $v$ and $\|v\|$. List the three connections and their transforms.
+\item Now $b(t) = (0.9\sin 2\pi t,\ 0.1)$ while $a$ and $c$ stay constant. Find the range of $v_1(t)$, and the largest $\|v\|$. During which part of each second is $\|v\| > 1$? Sketch the ideal $v_1(t)$ over $1\,\mathrm{s}$ and mark where the decoded value will fall short. Then check the PN3 notebook's \S1b inputs the same way: what is the range of $w_1 = x_1 - 3y_1 + 2z_1 - 2q_1$ there?
+\end{enumerate}
+
+\section{Synapses in a chain, and probe filters}
+
+\begin{idea}
+A unit step through one exponential synapse gives $1 - e^{-t/\tau}$: $63\%$ at $t = \tau$, $95\%$ at $3\tau$. Each population added to a feed-forward chain adds one more synapse, and a filtered probe adds another. Through $k$ identical synapses the step response is $1 - e^{-t/\tau}\sum_{j=0}^{k-1}\frac{(t/\tau)^j}{j!}$, which starts flatter and lags more as $k$ grows. The final value is unchanged, because each filter has unit area.
+\end{idea}
+
+\begin{enumerate}
+\item A step from $0$ to $1$ at $t = 0$ passes through one synapse with $\tau = 10\,\mathrm{ms}$. Write $x(t)$, and evaluate it at $t = \tau$ and $t = 3\tau$ (symbolically, then roughly). Repeat for two synapses in series.
+\item An input node gives $1$ for $0.1 < t < 0.4\,\mathrm{s}$ and $0$ otherwise. It drives ensemble A, and A drives ensemble B with the identity. Every connection and every probe uses $\tau = 10\,\mathrm{ms}$. How many synapses lie between the input and A's probe, and between the input and B's probe? Sketch the input, A's probe, and B's probe on aligned axes. Then repeat B's trace for a connection computing $y = 1 - 2x$.
+\end{enumerate}
+
+\section{Nengo vocabulary}
+
+\begin{idea}
+\texttt{Node}: a value or function of time fed into the network. \texttt{Ensemble(n, d, radius=...)}: a population. \texttt{Connection(pre, post, transform=..., function=..., synapse=...)}: decoders of \texttt{pre} times encoders of \texttt{post}, with \texttt{function} choosing what to decode, \texttt{transform} a linear map applied after it, and \texttt{synapse} the PSC time constant. \texttt{Probe(obj, synapse=...)}: records the decoded value, filtered for display. A connection from an ensemble to itself is recurrent.
+\end{idea}
+
+\begin{enumerate}
+\item Write the Nengo code for PN3 \S3b: a step input that is $1$ for $0.1 < t < 0.4$, a $100$-neuron ensemble \texttt{a}, a $50$-neuron ensemble \texttt{b} representing $y = 1 - 2x$, a $10\,\mathrm{ms}$ synapse on the connection, and $10\,\mathrm{ms}$ probes on both ensembles.
+\item This code is meant to be the PN3 integrator ($\tau = 50\,\mathrm{ms}$ recurrent, $5\,\mathrm{ms}$ input). Find three bugs and fix each one. You may need Part~B for two of them; come back to this question after Section~12.
+\end{enumerate}
+\begin{lstlisting}[language=Python]
+tau = 0.05
+with nengo.Network() as model:
+    stim = nengo.Node(lambda t: 0.9 if 0.04 < t < 1.0 else 0)
+    x = nengo.Ensemble(200, dimensions=1)
+    nengo.Connection(stim, x, transform=1, synapse=0.005)
+    nengo.Connection(x, x, transform=tau, synapse=0.005)
+    p = nengo.Probe(x, synapse=0.01)
+\end{lstlisting}
+
+%=====================================================================
+\part*{Part B \quad Recurrent dynamics, one step at a time}
+%=====================================================================
+
+\section{Two Laplace facts}
+
+\begin{idea}
+Under $F(s) = \int_0^\infty f(t)e^{-st}dt$: convolution becomes multiplication, and a time derivative becomes multiplication by $s$ (when the signal starts at $0$). The exponential synapse transforms to $H(s) = 1/(1 + s\tau)$. Combine the two exponentials into one, $e^{-t(s + 1/\tau)}$, before integrating.
+\end{idea}
+
+\begin{enumerate}
+\item Derive $H(s)$ for $h(t) = \tau^{-1}e^{-t/\tau}$. Show the antiderivative and both limits.
+\item Find the Laplace transform of $h_1(t) = \tau^{-2}t\,e^{-t/\tau}$. Then check the derivative rule on $x(t) = e^{-at}$: compute $\mathcal{L}\{\dot x\}$ directly and compare with $sX(s) - x(0)$.
+\end{enumerate}
+
+\section{The recurrent connection is a differential equation}
+
+\begin{idea}
+A population receiving $g(u)$ from an input and $f(x)$ from itself represents $x = h * (g(u) + f(x))$. In the Laplace domain $X(1 + s\tau) = G + F$, so
+\[
+\dot x = \tfrac{1}{\tau}\bigl(g(u) + f(x) - x\bigr).
+\]
+The $-x$ is the leak of the synapse. The algebraic guess $x = g(u) + f(x)$ is only the steady-state condition, and it says nothing about how fast or whether you get there.
+\end{idea}
+
+\begin{enumerate}
+\item Derive the equation above using the Laplace transform. State every step in words as well as symbols.
+\item Derive the same equation without Laplace: show that $y = h * z$ satisfies $\tau\dot y = z - y$, using $h(t) = \tau^{-1}e^{-t/\tau}$. Then say in one sentence why a synapse is called a ``leaky integrator''.
+\end{enumerate}
+
+\section{Linear feedback $f(x) = kx$}
+
+\begin{idea}
+With $g(u) = u$ and $f(x) = kx$: $\dot x = \frac{1}{\tau}\bigl(u - (1 - k)x\bigr)$. For $k < 1$ it settles to $u/(1 - k)$ with time constant $\tau/(1 - k)$. For $k = 1$ there is no leak, and $x$ integrates $u/\tau$. For $k > 1$ it grows exponentially until the neurons saturate. One feedback gain decides whether the network forgets, remembers, or explodes.
+\end{idea}
+
+\begin{enumerate}
+\item $\tau = 50\,\mathrm{ms}$, $k = -1$, and $u$ steps from $0$ to $1$ at $t = 0$ with $x(0) = 0$. Write $x(t)$, its steady state, and its time constant. Sketch it, marking both. Compare with Lecture~6's observation that the network ``converges to $u/2$''.
+\item Same $\tau$ and input. Give $x(t)$ for $k = 0.5$, $k = 1$, and $k = 2$, and sketch all three with the $k = -1$ curve on one set of axes (assume radius $1$). Then use the equation to explain Lecture~6's $f(x) = x + 1$ result.
+\end{enumerate}
+
+\section{One-dimensional phase portraits and stability}
+
+\begin{idea}
+Plot $\phi(x) = \dot x$ against $x$. Where $\phi > 0$ the state moves right, where $\phi < 0$ it moves left; draw arrows on the $x$-axis. Zeros of $\phi$ are equilibria. An equilibrium is stable if $\phi$ crosses zero going downward ($\phi'(x^*) < 0$) and unstable if it crosses upward. If $\phi'(x^*) = 0$, look at the arrows on each side.
+\end{idea}
+
+\begin{enumerate}
+\item Lecture~6's $f(x) = x^2$ with $g(u) = u$. For $u = 0.16$, find the equilibria and classify each with $\phi'(x)$. Sketch $\phi(x)$ with arrows. What happens for $u = 0.3$, and for $x(0) = 1$ with $u = 0.16$? Relate this to the lecture's ``memory''.
+\item With $g(u) = u$ and $u = 0$, analyse (i) $f(x) = x - x^3$ and (ii) $f(x) = x + x(0.25 - x^2)$. For each, give the equilibria, their stability, and a sketch of $\phi$ with arrows. Which of the two can store one bit, and what is that bit?
+\end{enumerate}
+
+\section{Mapping an LTI system onto a synapse}
+
+\begin{idea}
+Target $\dot x = Ax + Bu$. The neural loop gives $X = H(s)(A'X + B'U)$, so $s\tau X = (A' - I)X + B'U$. Matching terms gives
+\[
+A' = \tau A + I, \qquad B' = \tau B,
+\]
+where $\tau$ is the time constant of the synapse on the recurrent connection. $A'$ is the recurrent transform; $B'$ is the input transform.
+\end{idea}
+
+\begin{enumerate}
+\item Derive $A'$ and $B'$. Then give $A, B, A', B'$ for a $d$-dimensional integrator with $\tau = 50\,\mathrm{ms}$.
+\item A low-pass filter $\dot x = (u - x)/\tau_d$. With $\tau = 50\,\mathrm{ms}$, find $A'$ and $B'$ for $\tau_d = 200\,\mathrm{ms}$ and for $\tau_d = 10\,\mathrm{ms}$. Check that each has steady state $x = u$. Sketch both step responses next to the response of a single $50\,\mathrm{ms}$ synapse. What is surprising about $\tau_d = 10\,\mathrm{ms}$?
+\end{enumerate}
+
+\section{The ideal answer is a definite integral}
+
+\begin{idea}
+For an integrator starting at $0$, the ideal state is $x(t) = \int_0^t u(t')\,dt'$, written piecewise with one case for each piece of the input. Each piece starts from the value the previous piece ended at. There is no integration constant. After the input turns off, the ideal state holds constant.
+\end{idea}
+
+\begin{enumerate}
+\item $u = 0.8$ for $0.2 \le t < 1.0$ and $0$ otherwise. Write $x(t)$ for the three cases and sketch $u$ and $x$ on aligned axes over $0$--$1.5\,\mathrm{s}$, marking the final value.
+\item Write and sketch the ideal $x(t)$ for (i) a ramp from $0$ to $0.6$ over $0 \le t < 0.3$, then $0$; (ii) $u = 3\sin(3t)$ over $0$--$4\,\mathrm{s}$. For (ii), give the range of $x$. If the ensemble has radius $1$, what will the decoded trace do?
+\end{enumerate}
+
+\section{Why a neural integrator drifts}
+
+\begin{idea}
+Errors in a neural integrator come from two sources. Static distortion: the decoded recurrent function $\hat f'(x)$ is not exactly $x$, so the real dynamics are $\hat\phi(x) = (\hat f'(x) - x)/\tau$ instead of $0$. It has small stable and unstable zeros, and the state drifts deterministically to the nearest stable one. Noise from spikes makes the state random-walk, so repeated spiking runs differ. Rate mode removes the spike noise and keeps the static distortion.
+\end{idea}
+
+The plot shows $\hat\phi(x) = (\hat f'(x) - x)/\tau$ for a $30$-neuron rate-mode integrator with $\tau = 0.1\,\mathrm{s}$ and no input.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.9\textwidth, height=5.4cm, xmin=-1, xmax=1, ymin=-0.85, ymax=0.85,
+  xlabel={represented value $x$}, ylabel={$\hat\phi(x) = \dot x$ (s$^{-1}$)},
+  xtick={-1,-0.8,...,1}, title={Neural phase portrait of a 30-neuron integrator}]
+  \addplot[black, thick, domain=-1:1, samples=2] {0};
+  \addplot[blue!70!black, very thick] table[x=x, y=phi] {pn3_data/neural_phase.dat};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+\item The input is switched off while the state is at $x = 0.3$. Using the plot, where does the state go, and roughly how many seconds does it take? Repeat for $x = -0.3$ and $x = 0.6$. Which points on the plot are stable equilibria?
+\item Explain why spiking runs of the same integrator end at different values on each run, while rate-mode runs with a fixed seed repeat exactly. What would doubling the neuron count do to the plot above?
+\end{enumerate}
+
+\section{Unequal input and recurrent synapses}
+
+\begin{idea}
+PN3 uses $\tin = 5\,\mathrm{ms}$ on the input and $\tau = 50\,\mathrm{ms}$ on the recurrence, and computes $A', B'$ with $\tau$. Then $X = H_\tau(A'X) + H_{\tin}(B'U)$. For the integrator this solves exactly to
+\[
+X(s) = \frac{U(s)}{s} + (\tau - \tin)H_{\tin}(s)U(s), \qquad x(t) = \int_0^t u + (\tau - \tin)\,(h_{\tin} * u)(t).
+\]
+The integral is still correct. On top of it, the input leaks straight into the state with weight $\tau - \tin$, so the trace sits above the ideal while $u > 0$ and returns to the ideal when $u$ turns off.
+\end{idea}
+
+\begin{enumerate}
+\item Derive the expression for $X(s)$ above. Use the identity $\frac{1 + s\tau}{1 + s\tin} = 1 + \frac{s(\tau - \tin)}{1 + s\tin}$.
+\item Apply it to the PN3 input: $u = 0.9$ for $0.04 \le t < 1.0$, $\tau = 50\,\mathrm{ms}$, $\tin = 5\,\mathrm{ms}$. How large is the offset while the input is on, and what is the final value? Sketch the ideal and the predicted trace. Separately, what would go wrong if someone computed $B'$ with $\tin$ instead of $\tau$?
+\end{enumerate}
+
+\section{A leaky integrator: eye position}
+
+\begin{idea}
+The eye-position circuit drifts back to the centre with time constant $\tau_{\mathrm{eye}}$: $\dot x = -x/\tau_{\mathrm{eye}} + v$. So $A' = 1 - \tau/\tau_{\mathrm{eye}}$ and $B' = \tau$. Reading it backwards, any recurrent gain $A'$ gives an effective time constant $\tau_{\mathrm{eff}} = \tau/(1 - A')$. A recurrent gain only slightly below $1$ already makes a short memory; slightly above $1$ makes the state run away.
+\end{idea}
+
+\begin{enumerate}
+\item $\tau_{\mathrm{eye}} = 20\,\mathrm{s}$ and $\tau = 0.1\,\mathrm{s}$. Find $A'$ and $B'$. In the dark the eye starts at $x = 0.5$ with $v = 0$. Write $x(t)$ and give $x$ after $20\,\mathrm{s}$.
+\item The decoders actually implement $A' = 0.98$. Find $\tau_{\mathrm{eff}}$ and redo the sketch from $x = 0.5$ over $10\,\mathrm{s}$ alongside the intended one. What if $A' = 1.01$? What does this sensitivity say about building integrators from neurons?
+\end{enumerate}
+
+\section{The oscillator}
+
+\begin{idea}
+$\dot x = \begin{pmatrix} 0 & -\omega \\ \omega & 0 \end{pmatrix}x$ rotates the 2-D state at $\omega$ rad/s, so $A' = \begin{pmatrix} 1 & -\tau\omega \\ \tau\omega & 1 \end{pmatrix}$ and $B' = 0$. The origin is an equilibrium, so a brief input ``kick'' is needed to start it. The ideal system keeps whatever amplitude the kick gives; the neural one is bounded by the radius and can collapse to zero because of noise and distortion. The larger $\tau\omega$ is, the bigger the rotation the recurrent decoders must produce on each pass.
+\end{idea}
+
+\begin{enumerate}
+\item Give $A'$ for a $2\,\mathrm{Hz}$ oscillator with $\tau = 0.1\,\mathrm{s}$. Starting from $x(0) = (1, 0)$, write $x_1(t)$ and $x_2(t)$, and sketch them against time and as a trajectory in the $(x_1, x_2)$ plane with its direction.
+\item Why does the network do nothing with zero input from $x = (0, 0)$? Why does a huge kick not give a huge oscillation? Then give $A'$ for the damped oscillator $A = \begin{pmatrix} -\gamma & -\omega \\ \omega & -\gamma \end{pmatrix}$ and sketch its phase-plane trajectory.
+\end{enumerate}
+
+\section{Nonlinear dynamics with the same recipe}
+
+\begin{idea}
+If $\dot x = f(x) + g(u)$, implement the recurrent function $f'(x) = \tau f(x) + x$ and the input function $g'(u) = \tau g(u)$. If $f$ contains a product of state variables, the recurrent connection must decode a nonlinear function of several dimensions, so one population must represent all of them together.
+\end{idea}
+
+\begin{enumerate}
+\item With $\tau = 0.1\,\mathrm{s}$, give $f'$ and $g'$ for $\dot x = -x^3 + u$. Write the two Nengo connections, including the \texttt{function} on the recurrent one.
+\item For the 3-D Lorenz-type system in Lecture~6, give $f'(x)$. Explain why the network uses one 3-D population rather than three 1-D populations, and why it needs no kick.
+\end{enumerate}
+
+\section{The controlled integrator}
+
+\begin{idea}
+$\dot x = c\,x + u$, where $c(t)$ is itself an input. With $c = 0$ it integrates; with $c < 0$ it leaks with time constant $1/|c|$. The recurrent function is $f'(x, c) = \tau c x + x$. This depends on the product $cx$, so one 2-D population represents $(x, c)$. The recurrent connection decodes $f'$ and feeds it into dimension $1$ only. $u$ enters dimension $1$ with transform $\tau$; $c$ enters dimension $2$ with transform $1$, because $c$ is only represented, not integrated.
+\end{idea}
+
+\begin{enumerate}
+\item Draw the network: input nodes for $u$ and $c$, the 2-D population, and the recurrent connection. Label every transform, function, and synapse, and give the shape of each transform.
+\item $u = 1$ for $0 \le t < 0.5$ and $0$ afterward. Sketch $x(t)$ over $2\,\mathrm{s}$ for $c = 0$, for $c = -2$, and for $c = +1$ (radius $1$). Give the time constant of the decay after $t = 0.5$ for $c = -2$.
+\end{enumerate}
+
+%=====================================================================
+\part*{Part C \quad Questions that each use two ideas}
+%=====================================================================
+
+\begin{trythis}
+These are the first questions in the set that are allowed to feel like the test. Attempt all three before opening their solutions.
+\end{trythis}
+
+\begin{enumerate}
+\item A population has $g(u) = 2u$ on its input and $f(x) = -x$ on its recurrent connection, with $\tau = 20\,\mathrm{ms}$. Which dynamical system does it implement? Give the steady state and time constant for a unit step, and sketch it.
+\item An integrator with $\tau = 0.1\,\mathrm{s}$ is built with a recurrent transform of $0.9$ instead of $1$. Find the system it really implements. Sketch its response to the input from Section~13, Question~1, alongside the ideal.
+\item In plain language, why do we multiply the desired dynamics by $\tau$ and add $x$ when building a recurrent connection? Three sentences, no equations.
+\end{enumerate}
+
+\vspace{8pt}
+When every second question above can be done from a blank page, write Practice Test~3 in 30 minutes with the solutions closed.
+
+\end{document}

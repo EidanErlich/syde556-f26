@@ -1,0 +1,123 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \quad Practice Test 3: Recurrent Dynamics \& Nengo}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\tin}{\tau_{\mathrm{in}}}
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[enumerate]{label=(\alph*), leftmargin=2em, itemsep=4pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Practice Test 3: Recurrent Dynamics \& Nengo}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\item Unless stated otherwise, use the exponential synapse $h(t) = \frac{1}{\tau}e^{-t/\tau}$ for $t \ge 0$. Leave exponentials and roots symbolic. Label every sketch axis.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+A population represents $x$. It receives an input $u$ through a connection that decodes $g(u)$, and it is connected to itself through a connection that decodes $f(x)$. Both connections use the same synapse $h(t)$, so $x = h * \bigl(g(u) + f(x)\bigr)$.
+
+\begin{enumerate}
+\item Derive the differential equation that $x(t)$ obeys. Name the transform you use and the two of its properties that you need.
+\answerbox{4.6cm}
+\item Take $g(u) = u$, $f(x) = -x$, and $\tau = 20\,\mathrm{ms}$. The input steps from $0$ to $1$ at $t = 0$ and $x(0) = 0$. In the box, sketch $x(t)$. Label its steady-state value and its time constant.
+\answerbox{4.6cm}
+\end{enumerate}
+
+\newpage
+%---------------------------------------------------------------------
+\question{2}{4}
+You want a population to act as an integrator, $\dot x = u$. The recurrent synapse has $\tau = 100\,\mathrm{ms}$.
+
+\begin{enumerate}
+\item Write the integrator in the form $\dot x = Ax + Bu$ and give $A$, $B$, $A'$, and $B'$. Then draw the network as it would be built in Nengo (input node, ensemble, connections), labelling the transform and synapse on every connection.
+\answerbox{5.2cm}
+\item The input is
+\[
+u(t) = \begin{cases} 0.5, & 0.1 \le t < 0.5,\\ -1, & 0.5 \le t < 0.7,\\ 0, & \text{otherwise.} \end{cases}
+\]
+Write the ideal $x(t)$ as a definite integral, case by case. In the box, sketch $u(t)$ and the ideal $x(t)$ on aligned time axes over $0 \le t \le 1.5\,\mathrm{s}$, marking the values at the switching times.
+\answerbox{6.4cm}
+\end{enumerate}
+
+\newpage
+%---------------------------------------------------------------------
+\question{3}{4}
+A population with synapse $\tau$ has input function $g(u) = u$ and recurrent function $f(x) = 2x - x^3$. The input is $u = 0$. Assume the radius comfortably covers $[-1.5, 1.5]$.
+
+\begin{enumerate}
+\item Write $\dot x$. Find every equilibrium and classify each as stable or unstable, giving your reason.
+\answerbox{4.4cm}
+\item In the box, sketch the phase portrait ($\dot x$ against $x$ on $[-1.5, 1.5]$) with arrows and equilibria marked. Beside it, sketch $x(t)$ for $x(0) = 0.1$ and for $x(0) = -0.1$. In one sentence, explain why this network is a memory.
+\answerbox{6.2cm}
+\end{enumerate}
+
+\newpage
+%---------------------------------------------------------------------
+\question{4}{4}
+The integrator from Question~2 is simulated in Nengo with $200$ LIF neurons.
+
+\begin{enumerate}
+\item After the input ends, the spiking network's represented value does not stay exactly at the ideal value. It wanders, and repeated runs end at different values. In rate mode (\texttt{LIFRate}) with a fixed seed, it drifts in the same way on every run. Name the two sources of error and say which behaviour each one causes. How does increasing the number of neurons affect each?
+\answerbox{4.6cm}
+\item In the actual build, the input connection uses $\tin = 5\,\mathrm{ms}$ while the recurrent connection uses $\tau = 100\,\mathrm{ms}$, and $A'$, $B'$ were computed with $\tau$. Show that
+\[
+X(s) = \frac{U(s)}{s} + (\tau - \tin)\,\frac{U(s)}{1 + s\tin}.
+\]
+Using this, describe how the represented value differs from your ideal $x(t)$ in Question~2(b), both during and after the input. Give the size of any offset.
+\answerbox{5.6cm}
+\end{enumerate}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+\begin{enumerate}
+\item A 1-D Nengo ensemble with radius $1$ has identity-decoding RMSE $\varepsilon$. The seed, the relative intercepts, and the maximum rates are unchanged, and the radius is set to $3$. Give the new RMSE and explain why in one sentence. \hfill [1]
+\answerbox{1.8cm}
+\item A neuron has encoder $e = -1$, an $x$-intercept at $x = 0.5$, and a maximum rate of $200\,\mathrm{Hz}$ at $x = -1$, with $\trc = 20\,\mathrm{ms}$. Nengo holds the intercept and maximum rate fixed. In the box, sketch its tuning curve on $x \in [-1, 1]$ for $\tref = 1\,\mathrm{ms}$ and for $\tref = 4\,\mathrm{ms}$, on the same axes. Which population (all neurons with the larger or the smaller $\tref$) would have the larger identity RMSE, and why? \hfill [2]
+\answerbox{5.0cm}
+\item Four 2-D ensembles of radius $1$ compute $v = a - 2b + 3c$ with constant inputs $a = (0.2, 0.5)$, $b = (0.3, -0.1)$, $c = (0.1, 0.2)$. Compute $v$. Will the decoded $\hat v$ be accurate? If not, name one fix. \hfill [1]
+\answerbox{2.2cm}
+\end{enumerate}
+
+\newpage
+%---------------------------------------------------------------------
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+When implementing $\dot x = Ax + Bu$ with a synapse, we use $A' = \tau A + I$ and $B' = \tau B$. In plain language, what is the ``$+I$'' doing, and why is everything multiplied by $\tau$? Why can a purely feed-forward network not hold a value for seconds?
+\answerbox{4.2cm}
+
+\vspace{8pt}
+\begin{center}\textit{End of practice test --- 20 marks (plus 2 bonus).}\end{center}
+
+\end{document}
