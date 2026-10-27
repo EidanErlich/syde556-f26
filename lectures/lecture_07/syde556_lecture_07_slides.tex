@@ -133,6 +133,63 @@
 		\includegraphics<3>[width=\textwidth]{media/delay_network_sine_i2_q6.pdf}%
 	\end{frame}
 
+	\begin{frame}{From the Delay Network to the Legendre Memory Unit}
+		\begin{columns}
+			\column{0.55\textwidth}
+			\begin{itemize}
+				\item<1-> The \emph{Legendre Memory Unit} (LMU) places the delay network's linear system at the core of a recurrent neural architecture
+				\item<2-> Parameter-efficient: $\mathcal{O}(N)$ rather than the expected $\mathcal{O}(N^2)$
+				\item<3-> Trainable feedforward, deployable recurrently
+				\item<4-> Neural connection: explains time cells; runs dynamic and spiking (or not)
+			\end{itemize}
+			\column{0.45\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{media/lmu_architecture.png}
+		\end{columns}
+	\end{frame}
+
+	\begin{frame}{State Space Models (SSMs)}
+		\begin{itemize}
+			\item<1-> LSTMs (1995): long the dominant recurrent network, but training cannot be parallelized, and sequences beyond ${\sim}10^3$ samples are out of reach
+			\item<2-> Transformers (2017): parallel training, but compute and memory scale as $\mathcal{O}(N^2)$ in sequence length
+			\item<3-> \emph{SSMs}: the delay network/LMU (2018--2019, Waterloo) was the first; re-derived at Stanford as HiPPO (2020), followed by the S-series (2021) and Mamba (2023)
+			\item<4-> SSMs now achieve state-of-the-art results on language, audio, and genomics, with SSM work at DeepMind, Meta, Nvidia, Princeton, Stanford, \dots
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{LMU Benchmarks}
+		\begin{columns}
+			\column{0.55\textwidth}
+			\centering
+			\includegraphics[width=0.82\textwidth]{media/lmu_memory_capacity.png}
+			\column{0.4\textwidth}
+			\centering
+			\includegraphics[height=0.52\textheight]{media/lmu_psmnist_table.png}
+		\end{columns}
+		\begin{itemize}
+			\item Memory: ${\sim}10^6\times$ lower error while remembering ${\sim}10^4\times$ longer sequences than an LSTM
+			\item psMNIST: (simplified) LMU set the state of the art (98.49\,\%) with 60\,\% fewer parameters
+			\item Scaling: $\mathcal{O}(N)$ compute and $\mathcal{O}(1)$ memory, vs.\ $\mathcal{O}(N^2)$ for transformers
+		\end{itemize}
+	\end{frame}
+
+	\begin{frame}{SSMs in Practice (and Other Bases)}
+		\begin{columns}
+			\column{0.47\textwidth}
+			\begin{itemize}
+				\item<1-> Applications: LLMs (e.g.\ Mamba), speech recognition, keyword spotting, RF classification, anomaly detection, biosignals, nonlinear system prediction
+				\item<2-> Other temporal bases work too (Fourier, cosine, Haar, \dots); analytic bases often beat learned ones
+			\end{itemize}
+			\column{0.53\textwidth}
+			\centering
+			\includegraphics<2->[width=\textwidth]{media/lmu_bases_boxplot.png}
+		\end{columns}
+		\onslide<3->
+		\begin{mdframed}
+			``Next gen state space models [are] probably the next generation of transformers.''\hfill --- Jensen Huang, CEO Nvidia, 2024
+		\end{mdframed}
+	\end{frame}
+
 	\backupbegin
 
 	\begin{frame}[noframenumbering]{Image sources}
