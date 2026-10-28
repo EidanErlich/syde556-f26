@@ -1,0 +1,125 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \quad Practice Test 3B: Nengo \& Simple Dynamics}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[itemize]{itemsep=1pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Practice Test 3B: Nengo \& Simple Dynamics}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\item Unless stated otherwise, every synapse is the first-order low-pass $h(t) = \frac1\tau e^{-t/\tau}$.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+(a) A Nengo ensemble represents $\mathbf x \in \mathbb R^2$ with \texttt{radius=2}. One of its LIF neurons has encoder $e = (0, 1)$, a (normalized) intercept of $-0.5$, and a maximum rate of $150$ Hz. In the left box, sketch this neuron's firing rate along the line $\mathbf x = (0, s)$, and along the line $\mathbf x = (s, 0)$, for $s \in [-2, 2]$. Label where it starts firing.
+
+(b) The same kind of ensemble (now 1-D, radius 1) is driven by $x(t) = \sin(2\pi \cdot 2t)$. Its decoded output is recorded with three probes: \texttt{synapse=0.001}, \texttt{synapse=0.01} and \texttt{synapse=0.1}. In the right box, sketch what each probe records over one second. Does changing the probe synapse change what the ensemble represents?
+
+\noindent\framebox[0.5\linewidth][l]{\rule{0pt}{5.2cm}(a)}\framebox[0.5\linewidth][l]{\rule{0pt}{5.2cm}(b)}
+
+\vspace{2.2cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{2}{4}
+A population representing $x$ receives an input $u$ through a connection computing $g(u)$, and has a recurrent connection computing $f(x)$. Both connections use a synapse with time constant $\tau$. The represented value obeys
+\[
+\tau\,\frac{dx}{dt} = g(u) + f(x) - x.
+\]
+(a) Explain what each term represents, and where the $-x$ comes from. What would $x$ do if the recurrent connection were removed?
+\vspace{4.2cm}
+
+(b) Using $\tau = 50$ ms, find the recurrent and input transforms so that the network implements the low-pass filter
+\[
+\frac{dx}{dt} = -\frac{1}{0.5}\,x + \frac{1}{0.5}\,u.
+\]
+Draw the network (populations, connections, transforms). What time constant would you see in the response to a step in $u$?
+\vspace{5cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{3}{4}
+A population with radius $1$ and synaptic time constant $\tau$ has input connection $g(u) = u$ and recurrent connection $f(x) = x - x^2$. The input is held constant.
+
+(a) Write the resulting dynamics $\tau\dot x = \varphi(x)$. For $u = 0.25$, find all equilibria and state whether each is stable or unstable.
+\vspace{3.4cm}
+
+(b) Sketch $\varphi(x)$ for $u = 0.25$ with arrows on the $x$-axis. Describe what $x$ does starting from $x(0) = 0$ and from $x(0) = -0.8$. What changes if the input is lowered to $u = -0.1$?
+\answerbox{5.4cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{4}{4}
+You want a 2-D population to oscillate at $1$ Hz:
+\[
+\dot{\mathbf x} = \begin{bmatrix} 0 & -\omega \\ \omega & 0\end{bmatrix}\mathbf x, \qquad \omega = 2\pi \text{ rad/s}.
+\]
+(a) The recurrent synapse is $\tau = 0.1$ s. What recurrent transform $A'$ do you use? (Leave $\pi$ in your answer.)
+\vspace{2.4cm}
+
+(b) A brief input kick leaves the state at $\mathbf x(0) = (0, 0.8)$. In the box, sketch \emph{all of the following}:
+\begin{itemize}
+\item $x_1(t)$ and $x_2(t)$ on the same time axis for $0 \le t \le 2$ s;
+\item the trajectory in the $(x_1, x_2)$ plane, with an arrow showing its direction.
+\end{itemize}
+\answerbox{5cm}
+
+(c) Why does the network need the kick? In a real Nengo simulation, what sets the amplitude it ends up oscillating at?
+\vspace{2.4cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+An integrator $\dot x = u$ is built with recurrent transform $1$ and recurrent synapse $\tau = 0.1$ s. It starts at $x(0) = 0$ and receives a ramp input:
+\[
+u(t) = \begin{cases} 4t, & 0 \le t < 0.5 \text{ s},\\ 0, & t \ge 0.5 \text{ s}.\end{cases}
+\]
+(a) Find the ideal $x(t)$ for all $t \ge 0$ and sketch it.
+\vspace{2.2cm}
+\answerbox{3.6cm}
+
+(b) The input connection uses transform $\tau$ but a \emph{faster} synapse, $\tau_{\mathrm{in}} = 10$ ms. Sketch how the decoded $x(t)$ differs from your answer to (a). Roughly how large is the difference just before $t = 0.5$ s, and what happens after the ramp stops?
+\answerbox{3.6cm}
+\vspace{1.6cm}
+
+\newpage
+%---------------------------------------------------------------------
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+You build the integrator of Question 5 (with matched synapses) and stop the input at $t = 0.5$ s. Over the next few seconds, the decoded value creeps away from $0.5$. In plain language, why does a neural integrator drift? With spiking neurons the drift looks jittery and partly random, but with the same neurons in rate mode (\texttt{LIFRate}) it is smooth and predictable. Why?
+\vspace{5cm}
+
+\end{document}
