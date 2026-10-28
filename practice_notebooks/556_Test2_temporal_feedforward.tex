@@ -1,0 +1,107 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \quad Test 2: Temporal Representation \& Feedforward Transformations}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[itemize]{itemsep=1pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Test 2: Temporal Representation \& Feedforward Transformations}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+You want to generate a band-limited white noise signal $x(t)$ of length $T$ seconds with RMS $\sigma$ and an upper frequency limit $L$ (in Hz).
+
+(a) Describe in 3--4 short steps how you would construct $x(t)$ by sampling random values in the frequency domain.
+\vspace{3.4cm}
+
+(b) What constraint must the Fourier coefficients $X(\omega)$ satisfy so that $x(t)$ comes out purely real?
+\vspace{1.6cm}
+
+(c) In the box, sketch the average $|X(\omega)|$ you would expect over many such signals. Label the axes and mark the location of the limit $L$.
+\answerbox{3.6cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{2}{4}
+The following equation is used for the LIF neuron:
+\[
+\frac{dv}{dt} = \frac{1}{\trc}(J - v).
+\]
+Explain what each term in the equation represents, and what the equation as a whole describes (including what happens when $v$ reaches threshold).
+\vspace{4.6cm}
+
+%---------------------------------------------------------------------
+\question{3}{4}
+The post-synaptic current filter is $h(t) = c^{-1}t^n e^{-t/\tau}$ for $t \ge 0$, where $c$ normalizes it to unit area. (a) Sketch $h(t)$ for $n = 0$ and for $n = 1$ on the same axes. (b) With $n = 0$, if you increase $\tau$, name two things that happen to the decoded estimate $\hat x(t)$.
+
+\noindent\framebox[0.42\linewidth][l]{\rule{0pt}{3.6cm}(a)}\framebox[0.58\linewidth][l]{\rule{0pt}{3.6cm}(b)}
+
+%---------------------------------------------------------------------
+\question{4}{4}
+You want a network in which population $P_1$ represents $x$ and drives population $P_2$ so that $P_2$ represents $y = 2x + 1$.
+
+(a) What decoders do you solve for?
+\vspace{1.6cm}
+
+(b) Describe each step in the computation (there are 6) that occurs as signals flow from the input to the decoded output.
+\vspace{3.2cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+Consider a population of \emph{two} LIF spiking neurons with identical parameters ($\trc = 20$ ms, $\tref = 2$ ms, same $\alpha$ and $J^{\mathrm{bias}}$) but opposite encoders, $e_1 = +1$ and $e_2 = -1$.
+
+In the box, sketch \emph{all of the following} on the same time axis:
+\begin{itemize}
+\item the input signal $x(t)$ --- a sine wave, a couple of periods long;
+\item the spike trains of both neurons;
+\item your best guess at the decoded signal $\hat x(t)$.
+\end{itemize}
+\answerbox{6.4cm}
+
+%---------------------------------------------------------------------
+\vspace{6pt}
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+When decoding a spike train, the optimal linear filter can be written
+\[
+H(\omega) = \frac{\langle X(\omega)\,R^*(\omega)\rangle}{\langle |R(\omega)|^2\rangle},
+\]
+where $R(\omega)$ is the spike-response spectrum. In plain language, what is this filter doing, and how does it use the signal and response spectra?
+\vspace{4cm}
+
+\end{document}

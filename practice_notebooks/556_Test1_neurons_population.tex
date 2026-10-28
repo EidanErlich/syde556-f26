@@ -1,0 +1,89 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Test 1: Neurons \& Population Representation}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[enumerate]{label=(\roman*), leftmargin=2em, itemsep=2pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Test 1: Neurons \& Population Representation}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+A rectified-linear neuron fires at rate $a = G[J] = \max(J, 0)$, with input current $J = \alpha\langle x, e\rangle + J^{\mathrm{bias}}$. Consider a one-dimensional neuron with encoder $e = +1$. Derive expressions for the gain $\alpha$ and the bias $J^{\mathrm{bias}}$ so that the neuron has maximum firing rate $a^{\max}$ at $x = 1$ and an $x$-intercept at $x = \xi$ (the value of $x$ at which it begins to fire). Show your work.
+\vspace{4.2cm}
+
+%---------------------------------------------------------------------
+\question{2}{4}
+In the box below, sketch firing rate ($y$-axis) versus $x \in [-1, 1]$ ($x$-axis) for three LIF neurons that all share the same maximum firing rate $a^{\max}$. Label each curve and mark its $x$-intercept.
+\begin{enumerate}
+\item encoder $e = +1$, $x$-intercept near $-0.5$;
+\item encoder $e = -1$, $x$-intercept near $0$;
+\item encoder $e = +1$, $x$-intercept near $+0.8$.
+\end{enumerate}
+
+\newpage
+\answerbox{4.0cm}
+
+%---------------------------------------------------------------------
+\question{3}{4}
+A population of $N$ neurons represents a scalar value $x$. The input is sampled at $M$ values, giving the population activity matrix $\mathbf{A}$.
+
+(a) Write the matrix equation for the optimal decoders $\mathbf d$ that reconstruct $x$ from $\mathbf A$, \emph{including} the term that accounts for neural noise of variance $\sigma^2$.
+\vspace{2.2cm}
+
+(b) Now suppose the population represents a 2-D vector $\mathbf x$ (with $N = 10$ neurons) and at some moment has produced the activity vector $\mathbf a$. How do you calculate the decoded estimate $\hat{\mathbf x}$? Write the equation, and draw each vector and matrix in it as a labelled rectangle with its dimensions.
+\answerbox{3.0cm}
+
+(c) In one or two sentences, explain why including the noise term changes how the decoders behave when the activities are noisy.
+\vspace{2.0cm}
+
+%---------------------------------------------------------------------
+\question{4}{4}
+The representation error of a neural population has two distinct sources. (a) Name both. (b) State how each scales with the number of neurons $n$. (c) In one sentence, explain why they scale differently.
+\vspace{3.2cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+\textit{[Page 3 of the original paper was not photographed. Transcribe Question~5 here.]}
+\vspace{7cm}
+
+%---------------------------------------------------------------------
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+\textit{[Not photographed. Transcribe the bonus question here.]}
+\vspace{4cm}
+
+\end{document}
