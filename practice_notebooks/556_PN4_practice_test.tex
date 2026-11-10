@@ -1,0 +1,110 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \quad Practice Test 4: Decisions, the LMU, Learning \& Representation}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\tin}{\tau_{\mathrm{in}}}
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[itemize]{itemsep=1pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Practice Test 4: Decisions, the LMU, Learning \& Representation}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\item Unless stated otherwise, every synapse is the first-order low-pass $h(t) = \frac1\tau e^{-t/\tau}$, and a recurrent population with transforms $A'$, $B'$ on synapse $\tau$ implements $\dot x = Ax + Bu$ with $A' = \tau A + I$, $B' = \tau B$.
+\item PES uses Nengo's sign convention: error $=$ actual $-$ target.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+A 1-D ensemble with radius $1$ has a recurrent connection computing the identity with \texttt{transform=1} on a $\tau = 0.2$ s synapse. A constant input $u$ enters through \texttt{transform=1} on a $\tin = 20$ ms synapse. A second, 1-D ensemble receives the decoded function $\mathrm{choice}(x) = 1$ if $x > 0.9$, $-1$ if $x < -0.9$, and $0$ otherwise.
+
+(a) Give $A$ and $B$ for the system the first ensemble implements. For $u = 0.1$ switched on at $t = 0$, find when $x$ first reaches $0.9$, first ignoring the input-synapse mismatch, and then including the offset $(1 - \tin/\tau)\,u$ that it adds.
+\vspace{2.8cm}
+
+(b) In the box, sketch the accumulator and the decision output for $u = 0.1$ and for $u = -0.05$ over $0 \le t \le 4$ s. Label the times at which each decision is made. Give two ways in which the decoded decision output differs from the requested $\mathrm{choice}(x)$.
+\answerbox{4cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{2}{4}
+A Legendre Memory Unit with $q = 3$ and window $\theta = 0.25$ s is built in one 3-D ensemble, with $\tau = 0.05$ s on both the recurrent and the input connection. Its matrices are
+\[
+\theta A = \begin{pmatrix} -1 & -1 & -1 \\ 3 & -3 & -3 \\ -5 & 5 & -5 \end{pmatrix}, \qquad
+\theta B = \begin{pmatrix} 1 \\ -3 \\ 5 \end{pmatrix}.
+\]
+The window is read out as $u(t - \theta') \approx \sum_{i=0}^{2} x_i(t)\,\tilde P_i(\theta'/\theta)$, with $\tilde P_0(r) = 1$, $\tilde P_1(r) = 2r - 1$, $\tilde P_2(r) = 6r^2 - 6r + 1$.
+
+(a) Give the recurrent transform $A'$ and the input transform $B'$, with their shapes.
+\vspace{4cm}
+
+(b) At some instant the state is $x = (0.5,\ 0.3,\ -0.2)$. Write the stored window as a polynomial in $r = \theta'/\theta$. Give the current input, the input $\theta$ ago, and the average input over the window. In the box, sketch $u(t - \theta')$ against $\theta'$ for $0 \le \theta' \le 0.25$ s.
+\answerbox{5cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{3}{4}
+(a) A 2-D post population learns with PES, $\Delta w_{ij} = -\eta\,\alpha_i\langle e_i, \varepsilon\rangle a_j$, with $\eta = 10^{-4}$. A pre neuron fires at $a_j = 50$ Hz and the current error is $\varepsilon = (0.1,\ -0.2)$. Post neuron 1 has $e_1 = (0.6,\ 0.8)$ and $\alpha_1 = 2$; post neuron 2 has $e_2 = (0.8,\ -0.6)$ and $\alpha_2 = 2$. Find $\Delta w_{1j}$ and $\Delta w_{2j}$, and explain in one sentence why their signs move the decoded output toward the target.
+\vspace{4.6cm}
+
+(b) A PES connection ($\eta = 10^{-4}$, initialized to output $0$) learns $f(x) = x$ from a band-limited white-noise input with RMS $0.5$. At $t = 10$ s the error population is switched to use the target $f(x) = -x$. In the box, sketch the RMSE between the output and the current target over $0 \le t \le 20$ s. Give its approximate value just after $t = 0$ and just after $t = 10$ s, with reasons.
+\answerbox{5cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{4}{4}
+Three neurons with rates $a_1 = 1 + x$, $a_2 = 1 - x$ and $a_3 = 1$ are sampled at $x = -1, 0, 1$. Let $\mathbf A$ be the $3 \times 3$ matrix with one row per sample and one column per neuron.
+
+(a) Compute $\gamma = \mathbf A^\T\mathbf A$. Show that $(1, 1, 1)$, $(1, -1, 0)$ and $(1, 1, -2)$ are eigenvectors, and give the singular values. Find $\chi = \mathbf A\mathbf U$ and describe each column as a function of $x$.
+\vspace{5.4cm}
+
+(b) What does the zero singular value mean for this population? Write every decoder $\mathbf D$ that decodes $f(x) = x$ exactly, and say which one the SVD pseudo-inverse returns. With activity noise $\sigma^2 = 4$, by what factor is the decoded $\hat x$ shrunk?
+\answerbox{4.6cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+A pendulum obeys $\ddot\theta = \tau_{\mathrm{applied}} - mgL\cos\theta$ with $mgL = 9.8$ (and $mL^2 = 1$). The angle is measured from the horizontal. A PD controller applies $u_{\mathrm{PD}} = 16(\theta^* - \theta) - 8\dot\theta$.
+
+(a) With PD control only, write the condition for the steady angle. Estimate it for $\theta^* = 0$ using $\cos\theta \approx 1$, and say whether the exact value is larger or smaller in magnitude. What is the steady angle for $\theta^* = \pi/2$, and why?
+\vspace{4.6cm}
+
+(b) An adaptive ensemble representing $(\theta, \dot\theta)$ adds its decoded output $u_{\mathrm{ad}}$ to the torque, through a PES connection initialized to $0$. What signal (with sign) drives its learning rule, and what function does it learn? Give its value at $\theta = 0$ and at $\theta = \pi/2$. In the box, sketch $\theta(t)$ with and without adaptation while the target alternates between $0$ and $\pi/2$ every $5$ s, starting at $0$, over $40$ s.
+\answerbox{5cm}
+
+\newpage
+%---------------------------------------------------------------------
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+A synapse follows STDP, $\Delta w = \sum_{\text{pairs}} W(t_{\mathrm{post}} - t_{\mathrm{pre}})$, with $W(\Delta t) = \alpha^+e^{-\Delta t/10\,\mathrm{ms}}$ for $\Delta t > 0$ and $W(\Delta t) = -\alpha^-e^{\Delta t/10\,\mathrm{ms}}$ for $\Delta t \le 0$. The pre neuron spikes at $0$ and $20$ ms; the post neuron spikes at $5$ and $15$ ms. Find the total $\Delta w$ over all four pairs when $\alpha^+ = \alpha^-$, and when $\alpha^+ = 1$, $\alpha^- = 0.5$. Why does plain rate-based Hebbian learning, $\Delta w = \eta a_{\mathrm{pre}}a_{\mathrm{post}}$, not distinguish these two spike orders?
+\vspace{6cm}
+
+\end{document}

@@ -1,0 +1,339 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.85in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{pgfplots}
+\pgfplotsset{
+  compat=1.18,
+  every axis/.append style={grid=major, grid style={gray!25}, tick label style={font=\footnotesize},
+    label style={font=\small}, title style={font=\small}, legend style={font=\scriptsize}},
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \qquad Ramp practice}
+\rhead{Decisions, the LMU, learning, and analysing representation}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\tin}{\tau_{\mathrm{in}}}
+
+\newtcolorbox{idea}{colback=gray!8,colframe=gray!55,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt,fonttitle=\bfseries\small,title=Idea for this section}
+\newtcolorbox{trythis}{colback=orange!6,colframe=orange!60!black,boxrule=0.4pt,left=5pt,right=5pt,top=2pt,bottom=2pt,arc=1pt}
+
+\lstset{basicstyle=\ttfamily\small, columns=fullflexible, keepspaces=true, frame=single, rulecolor=\color{gray!50}, numbers=left, numberstyle=\tiny\color{gray}, xleftmargin=1.5em}
+
+\setlist[enumerate]{leftmargin=1.6em,itemsep=6pt,topsep=4pt}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Practice set: one idea at a time}\\[2pt]
+{\large Decision making, the Legendre Memory Unit, learning, and the SVD (up to Lecture 9 and PN4)}\\[4pt]
+{\normalsize Questions. Solutions are in a separate file. Leave that file closed.}
+\end{center}
+
+\subsection*{How to use this}
+
+Test 4 (Nov 12) covers Practice Notebook 4 and Lectures 7--9, and it uses everything from Tests 1--3 along the way. Part A rebuilds the pieces of the earlier material that PN4 leans on, using the PN4 networks as the examples. Part B goes through the PN4 material one idea at a time: the LMU, PES learning, adaptive control, and the SVD. Part C puts two ideas together in each question. Part D is a 30-minute practice test.
+
+Each section states one idea, then asks two questions. The first question shows the move. The second changes the numbers, the sign, or the setup, so a memorized picture from the first one will not be enough.
+
+\begin{enumerate}[leftmargin=1.4em]
+\item Read the idea box. Attempt the first question for about ten minutes.
+\item Open the solution for that question only. Read the working, close the file, and rewrite the answer on a blank page.
+\item Attempt the second question with the solutions closed. If it fails, the gap is the idea, not the arithmetic. Restate the idea box from memory, then try again before you read that solution.
+\item When every second question is possible from a blank page, write Part D in 30 minutes, closed book.
+\end{enumerate}
+
+\begin{trythis}
+\textbf{Sketch checklist.} Before you finish any sketch, check:
+(1) both axes labelled, with units;
+(2) every value the question names is marked (thresholds, steady states, crossing times, switch times, noise floors);
+(3) every event is drawn (input switching, a decision snapping, a target changing, learning switching on);
+(4) the starting value and the final value are correct, including where saturation at the radius stops a trace.
+For ``why'' questions, name the mechanism (which synapse, which decoder, which singular value), not only the symptom.
+\end{trythis}
+
+\textbf{Conventions.} Exponential synapse $h(t) = \tau^{-1}e^{-t/\tau}$, $H(s) = 1/(1 + s\tau)$. A recurrent population with recurrent transform $A'$ on synapse $\tau$ and input transform $B'$ implements $\dot x = Ax + Bu$ with $A' = \tau A + I$ and $B' = \tau B$. PES uses Nengo's sign: error $\varepsilon = \text{actual} - \text{target}$, and the decoder update is $\Delta d_j = -\eta\,\varepsilon\,a_j$. For the SVD, $\mathbf A$ is the $N \times n$ activity matrix (one row per sample of $x$, one column per neuron), as in Lecture 9, so $\gamma = \mathbf A^\T\mathbf A$ is $n \times n$. (PN4 writes $A$ as neurons $\times$ samples; then the same matrix is $AA^\T$.) Shifted Legendre polynomials on $[0, 1]$: $\tilde P_0 = 1$, $\tilde P_1 = 2r - 1$, $\tilde P_2 = 6r^2 - 6r + 1$, with $\tilde P_i(0) = (-1)^i$ and $\tilde P_i(1) = 1$. Leave exponentials, logarithms and roots symbolic. Label every sketch axis.
+
+%=====================================================================
+\part*{Part A \quad Pieces of Tests 1--3 that PN4 uses}
+%=====================================================================
+
+\section{The PN4 accumulator is an integrator with a large input gain}
+
+\begin{idea}
+PN4's accumulator has a recurrent identity connection on $\tau = 0.1\,\mathrm{s}$, and an input connection with the default \texttt{transform=1} and the default $\tin = 5\,\mathrm{ms}$ synapse. Read it backwards with the recipe: $A' = 1$ gives $A = 0$, an integrator, and $B' = 1$ gives $B = B'/\tau = 10\,\mathrm{s^{-1}}$. So the ideal state is $x(t) = \frac{1}{\tau}\int_0^t u$. Because $\tin \ne \tau$, the input also leaks straight into the state (PN3): $x(t) \approx \frac1\tau\int_0^t u + \bigl(1 - \frac{\tin}{\tau}\bigr)(h_{\tin} * u)(t)$, an offset of about $0.95u$ that appears within a few ms.
+\end{idea}
+
+\begin{enumerate}
+\item For constant inputs $u = 0.2, 0.1, -0.1, -0.2$ switched on at $t = 0$, give the ramp slope of $x(t)$, the size of the offset, and the time at which $|x|$ first reaches $0.9$, with and without the offset. Sketch all four traces over $0$--$2\,\mathrm{s}$ for an ensemble of radius $1$.
+\item Someone ``fixes'' the input using the PN3 recipe and sets the input \texttt{transform=tau}. What does the $u = 0.1$ trace look like now, and does it ever reach $0.9$ in $2\,\mathrm{s}$? Separately, someone keeps \texttt{transform=1} but changes the recurrent synapse to $10\,\mathrm{ms}$. What system is implemented now, and when does $u = 0.1$ reach $0.9$? What do the two changes tell you about which parameter sets the speed of accumulation?
+\end{enumerate}
+
+\section{Why the accumulator stops at the radius}
+
+\begin{idea}
+The recurrent connection does not compute $x$ exactly; it computes the decoded $\hat f(x)$. Inside the radius $\hat f(x) \approx x$. Beyond it, neurons with positive encoders are near their maximum rates, nothing new is recruited, and the decoders were never fitted there, so $\hat f(x)$ bends below $x$. The real dynamics are $\tau\dot x = \hat f(x) - x + B'u$, so the state stops where $\hat f(x) - x = -B'u$: a stable equilibrium slightly outside the radius.
+\end{idea}
+
+\begin{enumerate}
+\item Answer PN4~\S1b. What is the mathematical computation the accumulator performs (input to output)? Using a sketch of $\tau\dot x$ against $x$ for $u = 0.1$, explain why the value stops changing near $+1$. Why does the $u = 0.2$ trace stop a little higher than the $u = 0.1$ trace?
+\item The input is switched off at $t = 1.5\,\mathrm{s}$, after the $u = 0.1$ trace has stopped near $1$. What does $x$ do next, ideally and in the neural version? Then suppose the ensemble had radius $2$. When would $u = 0.1$ reach $0.9$ now, where would it stop, and what is the cost of the larger radius?
+\end{enumerate}
+
+\section{Noise turns accumulation into a random walk}
+
+\begin{idea}
+Model the accumulator as drift plus noise: $\dot x = b u + n(t)$, with $n$ white noise of intensity $\sigma^2$. Then $x(t)$ is Gaussian with mean $but$ and standard deviation $\sigma\sqrt t$. The mean grows like $t$ and the spread like $\sqrt t$, so waiting longer makes the sign of $x$ more reliable. This is the drift-diffusion account of decisions. PN4 adds the noise to the neurons' input currents, which also changes the effective tuning curves, so the decoded recurrent function is no longer exactly $x$.
+\end{idea}
+
+\begin{enumerate}
+\item Take $b = 10\,\mathrm{s^{-1}}$ and $\sigma = 0.3\,\mathrm{s^{-1/2}}$. For $u = 0.1$, give the mean and standard deviation of $x$ at $t = 0.5\,\mathrm{s}$, and how many standard deviations the mean is from zero. Repeat for $u = 0.05$. Which input is more likely to be on the wrong side of zero at $t = 0.5$? How long would the $u = 0.05$ case have to accumulate to be as reliable as $u = 0.1$ at $0.5\,\mathrm{s}$?
+\item In PN4~\S1c, with \texttt{rms=10} the four traces end at about $0.58$, $0.22$, $-0.33$, $-0.83$ after $2\,\mathrm{s}$ instead of near $\pm1$, and they wander. The random-walk model above predicts only extra spread, not smaller values. Explain why strong current noise also makes the accumulator \emph{leak}. (Think about what the decoders were solved for.)
+\end{enumerate}
+
+\section{Decoding a step function from smooth tuning curves}
+
+\begin{idea}
+A decoded function is a weighted sum of tuning curves, $\hat f(x) = \sum_i d_i a_i(x)$, and the tuning curves are smooth, so $\hat f$ cannot jump. PN4's \texttt{choice} jumps at $x = \pm 0.9$. The decoded version ramps across the jump, misses the corners, and wiggles where it should be flat. A second population can clean this up with its own nonlinearity: if every neuron's intercept is above $0.4$, inputs with $|y| < 0.4$ do not make any neuron fire, so the decoded output is exactly zero there.
+\end{idea}
+
+The plot shows the decoded \texttt{choice}$(x)$ from a 50-neuron, radius-1 ensemble (rate approximation).
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.8\textwidth, height=5.2cm, xmin=-1, xmax=1, ymin=-1.15, ymax=1.15,
+  xlabel={$x$ (accumulator value)}, ylabel={decoded output}, legend pos=north west, legend cell align=left]
+  \addplot[black, thick, dashed] coordinates {(-1,-1) (-0.9,-1) (-0.9,0) (0.9,0) (0.9,1) (1,1)};
+  \addplot[blue!70!black, very thick] table[x=x, y=yhat] {pn4_data/choice_decoded.dat};
+  \legend{requested \texttt{choice}$(x)$, decoded}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+\item Read off the decoded value at $x = 0.9$ and at $x = 1$, and the largest wiggle for $|x| < 0.8$. Explain each of the three differences from the requested function. The accumulator from Section~1 settles near $1.05$; roughly what will the decision population report once it has decided?
+\item Answer PN4~\S1f: give the decision population \texttt{intercepts=Uniform(0.4, 0.9)}. Why is its output now exactly $0$ before the decision? What can this population no longer represent, and why doesn't that matter here? Then answer PN4~\S1e: if the accumulator and the decision share one 2-D ensemble, what radius does it need, why can't you use the intercept trick, and what changes in the biological claim?
+\end{enumerate}
+
+%=====================================================================
+\part*{Part B \quad PN4, one idea at a time}
+%=====================================================================
+
+\section{Functions as vectors: how many numbers does a window need?}
+
+\begin{idea}
+A function can be stored as a vector of numbers: samples, or coefficients on a basis. The Nyquist--Shannon theorem says a signal with no frequencies above $B$ is completely determined, over a window of length $T$, by $N = 2BT$ equally spaced samples. So the number of state dimensions a memory of the recent past needs is set by its window length times its bandwidth, not by how finely you would like to plot it.
+\end{idea}
+
+\begin{enumerate}
+\item How many numbers determine a $5\,\mathrm{Hz}$-limited signal over a $0.5\,\mathrm{s}$ window? A $20\,\mathrm{kHz}$-limited audio signal over $1\,\mathrm{s}$? Why are audio sample rates like $44.1\,\mathrm{kHz}$ a little above twice the bandwidth?
+\item PN4 uses an LMU with $\theta = 0.5\,\mathrm{s}$ to tell a $1\,\mathrm{Hz}$ sine from a $2\,\mathrm{Hz}$ sine. What is the Nyquist lower bound on $q$ for this input? For white noise limited to $10\,\mathrm{Hz}$ with $\theta = 1\,\mathrm{s}$? Why is it impossible to tell $1\,\mathrm{Hz}$ from $2\,\mathrm{Hz}$ from one instantaneous sample $u(t)$, whatever its value?
+\end{enumerate}
+
+\section{Basis coefficients when the basis is orthogonal but not orthonormal}
+
+\begin{idea}
+With an orthogonal basis $\{\phi_i\}$ on an interval, the best $q$-term approximation $\hat f = \sum_{i<q} c_i\phi_i$ has $c_i = \langle f, \phi_i\rangle / \langle\phi_i, \phi_i\rangle$. Only for an orthonormal basis is the denominator $1$. The shifted Legendre polynomials on $[0, 1]$ are orthogonal with $\langle\tilde P_i, \tilde P_i\rangle = \int_0^1 \tilde P_i^2 = \frac{1}{2i + 1}$, so $c_i = (2i + 1)\int_0^1 f\,\tilde P_i$. Adding terms never changes the earlier coefficients.
+\end{idea}
+
+\begin{enumerate}
+\item Check that $\tilde P_0$ and $\tilde P_1$ are orthogonal on $[0, 1]$ and that $\int_0^1 \tilde P_1^2 = \frac13$. Find the Legendre coefficients of $f(r) = r$ and confirm that two terms reproduce it exactly.
+\item Find $c_0, c_1, c_2$ for $f(r) = r^2$. Sketch $f$, its $q = 2$ approximation, and its $q = 3$ approximation on $[0, 1]$, and give the error of the $q = 2$ version at $r = 0$, $\frac12$, $1$. What coefficients would you get if you forgot the factor $2i + 1$, and what would the ``approximation'' look like?
+\end{enumerate}
+
+\section{The LMU is a linear dynamical system}
+
+\begin{idea}
+A pure delay $e^{-s\theta}$ cannot be built from a finite number of synapses, but its Pad\'e approximant of order $q$ can: $\dot x = Ax + Bu$ with $x \in \mathbb{R}^q$,
+\[
+\theta A_{ij} = (2i + 1)\begin{cases} -1, & i < j\\ (-1)^{i - j + 1}, & i \ge j\end{cases}, \qquad \theta B_i = (2i + 1)(-1)^i, \qquad i, j = 0, \dots, q - 1.
+\]
+To build it in neurons, use the same recipe as any LTI system: one $q$-dimensional ensemble, $A' = \tau A + I$ on the recurrent connection and $B' = \tau B$ on the input, both on synapse $\tau$.
+\end{idea}
+
+\begin{enumerate}
+\item With $\theta = 0.5\,\mathrm{s}$ and $\tau = 0.1\,\mathrm{s}$, write $A$, $B$, $A'$, $B'$ for $q = 1$ and for $q = 2$, with their shapes. Write the two Nengo connections for general $q$. For $q = 1$, which familiar system is the LMU?
+\item For $q = 2$, find the steady state $x^*$ for a constant input $u$, and say what it means for the stored window. For $q = 1$, give the steady-state amplitude and phase lag of $x$ for the PN4 input ($1\,\mathrm{Hz}$ sine for $2\,\mathrm{s}$, then $2\,\mathrm{Hz}$), and sketch $u$ and $x$ over $4\,\mathrm{s}$. Explain why a $q = 1$ LMU makes a poor frequency classifier even though the two amplitudes differ.
+\end{enumerate}
+
+\section{Reading the window back out}
+
+\begin{idea}
+The LMU state holds the Legendre coefficients of the recent window: $u(t - \theta') \approx \sum_{i=0}^{q-1} \tilde P_i(\theta'/\theta)\,x_i(t)$ for $0 \le \theta' \le \theta$. Any \emph{linear} function of the window is therefore a fixed linear combination of the $x_i$: a decoding row vector, used as a \texttt{transform}. A delay of $\theta'$ uses the row $\bigl(\tilde P_0(r), \dots, \tilde P_{q-1}(r)\bigr)$ with $r = \theta'/\theta$. A \emph{nonlinear} function of the window (energy, frequency, category) needs neurons and a decoded \texttt{function}.
+\end{idea}
+
+\begin{enumerate}
+\item For $q = 6$, write the decoding row for the current input ($\theta' = 0$), for the input $\theta$ ago, and for the input $\theta/2$ ago ($\tilde P_2(\frac12) = -\frac12$, $\tilde P_4(\frac12) = \frac38$, and the odd ones are $0$ there). Check all three on the steady state for a constant input.
+\item Find the decoding row for the window average $\frac1\theta\int_0^\theta u(t - \theta')\,d\theta'$, and for the difference $u(t) - u(t - \theta)$. Then show that the window energy $\frac1\theta\int_0^\theta u(t - \theta')^2\,d\theta'$ equals $\sum_i x_i^2/(2i + 1)$. Which of the three can be a \texttt{transform}, and which needs a decoded \texttt{function}?
+\end{enumerate}
+
+\section{Classifying the window with \texttt{eval\_points}}
+
+\begin{idea}
+\texttt{Connection(a, b, eval\_points=x\_values, function=target)} solves the decoders by least squares on the states the LMU actually visited, with your labels as targets. It is supervised learning done offline, in one step. The decoder is only trustworthy on states that look like the training states. After any change in the input, the window takes up to $\theta$ to fill with the new signal, so states in that interval are a mixture.
+\end{idea}
+
+\begin{enumerate}
+\item PN4~\S2b: the LMU ($q = 6$, $\theta = 0.5\,\mathrm{s}$, $1000$ neurons) sees $1\,\mathrm{Hz}$ for $2\,\mathrm{s}$ then $2\,\mathrm{Hz}$ for $2\,\mathrm{s}$, and the category decoder is trained on that run with targets $+1$ then $-1$. Sketch the target and a plausible category output over $4\,\mathrm{s}$, marking where you expect it to be worst and why. Why is the output ``not perfect'' even far from the switch?
+\item PN4~\S2c: the same decoder is tested on $2\,\mathrm{Hz}$ first and $1\,\mathrm{Hz}$ second. For about the first $0.25\,\mathrm{s}$ it reports the $1\,\mathrm{Hz}$ label. Explain why, and give two different fixes. Then predict the shape of the classification RMSE against neuron count (PN4~\S2d, $50$ to $5000$) and against $q$ (PN4~\S2e, $1$ to $64$), and justify each shape.
+\end{enumerate}
+
+\section{From least squares to an online rule: the delta rule}
+
+\begin{idea}
+For one sample, $E = \tfrac12\bigl(\sum_i d_ia_i - y^{\mathrm d}\bigr)^2$, so $\partial E/\partial d_j = \varepsilon\,a_j$ with $\varepsilon = \hat y - y^{\mathrm d}$. Gradient descent gives $d_j \leftarrow d_j - \eta\varepsilon a_j$. After one step on the same sample the new error is $\varepsilon' = \varepsilon\,(1 - \eta\|a\|^2)$. So the step converges if $0 < \eta\|a\|^2 < 2$, is fastest at $\eta\|a\|^2 = 1$, and diverges with growing oscillations beyond $2$.
+\end{idea}
+
+\begin{enumerate}
+\item Derive $\Delta d_j$. Then take two neurons with rates $a = (50, 100)\,\mathrm{Hz}$, decoders $d = (0.002, 0.004)$, target $y^{\mathrm d} = 0.8$, and $\eta = 10^{-5}$. Compute $\hat y$, $\varepsilon$, the update to each decoder, the new $\hat y$, and the new error. Check that $\varepsilon'/\varepsilon = 1 - \eta\|a\|^2$.
+\item Repeat with $\eta = 2\times10^{-4}$ and describe the next three values of $\hat y$. Give the largest stable $\eta$ and the one-step-optimal $\eta$ for this activity vector. Why can't you simply pick the ``optimal'' $\eta$ in a real network, where $x(t)$ keeps changing?
+\end{enumerate}
+
+\section{From decoders to synaptic weights: the PES rule}
+
+\begin{idea}
+Weights are $w_{ij} = \alpha_i\langle e_i, d_j\rangle$. Substituting the delta rule gives the PES rule
+\[
+\Delta w_{ij} = -\eta\,\alpha_i\,\langle e_i, \varepsilon\rangle\,a_j .
+\]
+Everything is local: the post neuron $i$ needs its own gain and encoder, the presynaptic activity $a_j$, and the error projected onto its encoder, which it receives like an input (a modulatory signal, for example dopamine). In Nengo the error is a separate population, connected to \texttt{conn.learning\_rule}, and it must compute $\text{actual} - \text{target}$.
+\end{idea}
+
+\begin{enumerate}
+\item Pre neuron $j$ fires at $80\,\mathrm{Hz}$. Post neuron 1 has $e_1 = +1$, $\alpha_1 = 2$; post neuron 2 has $e_2 = -1$, $\alpha_2 = 1.5$. The error is $\varepsilon = +0.25$ and $\eta = 10^{-4}$. Compute $\Delta w_{1j}$ and $\Delta w_{2j}$. Explain in one sentence each why both changes move the decoded output the right way.
+\item PN4~\S3b: what happens if the error population computes $\text{target} - \text{actual}$ instead? Then, for PN4~\S3g (learn $x \mapsto (x^2, -x)$), give the dimension of each of \texttt{pre}, \texttt{post}, \texttt{error}, and list every connection with its \texttt{function}/\texttt{transform}. What should the \texttt{initialization} function return?
+\end{enumerate}
+
+\section{Learning curves: speed, floor, and what you trained on}
+
+\begin{idea}
+Under PES the error falls roughly exponentially and then levels off. The speed scales with $\eta$ (and with how strongly the needed function is represented, Part~C). The floor does not go to zero, because of (i) the finite population's representation error, (ii) spike noise in the activities and the error, and (iii) weight jitter: every update chases the current sample, so a large $\eta$ keeps overwriting what was learned for other inputs. The rule only learns the inputs it is shown.
+\end{idea}
+
+\begin{enumerate}
+\item PN4~\S3c: the RMSE over five 2-s chunks of a $10\,\mathrm{s}$ run, averaged over 10 runs, is about $0.24$, $0.13$, $0.083$, $0.062$, $0.057$. Sketch it. Estimate the time constant of the decay, and say what the last value is close to. Predict what the curve looks like for a $100\,\mathrm{s}$ run (PN4~\S3d), and for $100\,\mathrm{s}$ with $\eta = 10^{-5}$ (PN4~\S3e).
+\item The training signal is white noise with \texttt{rms=0.3}. After $10\,\mathrm{s}$ of learning, the input is switched to a slow ramp from $-1$ to $1$. Where along the ramp will the learned identity be worst, and why? Answer PN4~\S3f: list four changes that would make the learned function more accurate, and say which of the three error sources each one targets.
+\end{enumerate}
+
+\section{Adaptive control: learning the force you did not model}
+
+\begin{idea}
+A PD controller $u_{\mathrm{PD}} = k_p(\theta^* - \theta) - k_d\dot\theta$ only produces torque when there is an error. If gravity pulls with torque $mgL\cos\theta$, the arm can only be held still where $k_p(\theta^* - \theta) = mgL\cos\theta$, so it always settles short of the target. An adaptive population represents the state $(\theta, \dot\theta)$ and adds its decoded output $u_{\mathrm{ad}}$ to the torque. PES uses the PD signal itself as the error (with a minus sign, because $\varepsilon = \text{actual} - \text{target}$). Learning stops only when the PD controller has nothing left to correct, which means $u_{\mathrm{ad}}(\theta, \dot\theta) \approx mgL\cos\theta$.
+\end{idea}
+
+\begin{enumerate}
+\item Take $m = L = 1$, $g = 9.8$, $k_p = 25\,\mathrm{s^{-2}}$, $k_d = 10\,\mathrm{s^{-1}}$, $\theta^* = 0$, starting at $\theta = \pi/4$ at rest. Write the equation for the steady angle and estimate it with $\cos\theta \approx 1$. Is the estimate too large or too small in magnitude, and why? Linearize about $\theta = 0$ and say whether the approach is oscillatory. Sketch $\theta(t)$ over $3\,\mathrm{s}$.
+\item Now add the adaptive population. Draw the network and give the transform on the connection into \texttt{conn.learning\_rule}. What should $u_{\mathrm{ad}}$ be after learning when $\theta^* = 0$? The target then alternates between $0$ and $0.8\,\mathrm{rad}$ every $5\,\mathrm{s}$. What is the PD-only steady angle at $\theta^* = 0.8$ (the exact value is $0.446$; justify it)? If the adaptive part had learned only a constant torque of $9.8$, where would the arm settle at $\theta^* = 0.8$? Why does the population need to represent $\theta$ for the controller to work at both targets?
+\end{enumerate}
+
+\section{What the SVD of $\gamma$ says, computed by hand}
+
+\begin{idea}
+Every decoder is $\mathbf D = \gamma^{-1}\mathbf A^\T\mathbf X$ with the same $\gamma = \mathbf A^\T\mathbf A$, whatever function $\mathbf X$ holds. So $\gamma$ describes everything the population can decode. Write $\gamma = \mathbf U\mathbf S\mathbf U^\T$. The columns of $\chi = \mathbf A\mathbf U$ are new basis functions of $x$: orthogonal, ordered, with $\|\chi_m\|^2 = S_m$. A function $f$ decodes well if it is built from the $\chi_m$ with large $S_m$. With activity noise of variance $\sigma^2$, the coefficient on $\chi_m$ is $\Phi_m = \langle\chi_m, f\rangle/(S_m + \sigma^2)$, so directions with $S_m \lesssim \sigma^2$ are shrunk toward zero and are not usable.
+\end{idea}
+
+\begin{enumerate}
+\item Two neurons with rates $a_1 = 1 + x$ and $a_2 = 1 - x$ are sampled at $x = -1, 0, 1$. Write $\mathbf A$ ($3 \times 2$) and $\gamma$. Find $S$, $\mathbf U$ and $\chi = \mathbf A\mathbf U$, and describe each $\chi_m$ as a function of $x$. Find the decoder for $f(x) = x$ from $\gamma^{-1}\mathbf A^\T\mathbf X$, and check it. Can this population decode $x^2$? What is its best attempt?
+\item Add noise with $\sigma^2 = 4$ (in the same units as $S$). Use $\Phi_m$ to find the decoded $\hat x$ and the decoded constant $\hat 1$ at the three sample points. Which is shrunk more, and why? Now double both rates, $a_1 = 2 + 2x$ and $a_2 = 2 - 2x$, with the same noise. What happens to each singular value and to $\hat x$? What does this say about firing rate and noise?
+\end{enumerate}
+
+\section{The spectrum of a real population}
+
+\begin{idea}
+For a broadly tuned, heterogeneous 1-D LIF population, the $\chi_m(x)$ look like the Legendre polynomials: a near-constant, then linear, quadratic, cubic, and so on, with singular values falling roughly exponentially with order. Low-order functions are well supported and high-order ones are not. In $D$ dimensions, the polynomial terms of order $l$ (including cross terms like $x_1x_2$) all have singular values of about the same size, and there are $N_S(l, D) = \frac{(l + D - 1)!}{l!\,(D - 1)!}$ of them.
+\end{idea}
+
+The plot shows the normalized singular values $S_m/S_1$ of $\gamma$ for 100 LIF neurons over $x \in [-1, 1]$ ($501$ samples), with the noise level $N\sigma^2/S_1$ for $\sigma = 0.1 \max a$, Nengo's default regularization.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{semilogyaxis}[width=0.8\textwidth, height=5.2cm, xmin=0, xmax=21, ymin=1e-5, ymax=2,
+  xlabel={index $m$}, ylabel={$S_m / S_1$}, legend pos=north east, legend cell align=left]
+  \addplot[blue!70!black, only marks, mark=*, mark size=1.6pt] table[x=m, y=hetero] {pn4_data/svd_spectrum.dat};
+  \addplot[red!70!black, thick, dashed, domain=0:21, samples=2] {8.77e-4};
+  \legend{singular values, noise level $N\sigma^2/S_1$}
+\end{semilogyaxis}
+\end{tikzpicture}
+\end{center}
+
+\begin{enumerate}
+\item About how many basis functions are above the noise level? Sketch what you expect $\chi_1, \dots, \chi_4$ to look like on $[-1, 1]$. Rank $x$, $x^2$, $|x|$ and $\mathrm{sign}(x)$ from easiest to hardest to decode, with a reason for each. Connect this to the \texttt{choice} plot in Section~4.
+\item For a 2-D population, how many singular values do you expect at orders $l = 0, 1, 2, 3, 4$? Sketch the spectrum you expect. How many second-order terms are there in 4-D? Why does decoding a product $x_1x_2$ from a 2-D population have about the same difficulty as decoding $x_1^2$? Finally, why does a population whose intercepts are clumped near the ends of the range not follow this tidy ordering?
+\end{enumerate}
+
+\section{Unsupervised learning: PCA, Hebb, Oja, and STDP}
+
+\begin{idea}
+With no target, a learning rule can still find structure. PCA rotates the data so the first axes carry the most variance: the eigenvectors of the covariance matrix $C$, ordered by eigenvalue. Hebb's rule $\Delta w_{ij} = \eta a_ia_j$ (``fire together, wire together'') always increases weights for positive rates, so it is unstable. Oja's rule $\Delta w_{ij} = \eta(a_ia_j - a_i^2 w_{ij})$ adds a decay that holds $\|w_i\| = 1$, and a linear neuron's weight vector then converges to the first principal component. STDP adds causality: the weight grows if the pre spike comes shortly before the post spike, and shrinks if it comes after.
+\end{idea}
+
+\begin{enumerate}
+\item The centred data points are $(2, 1)$, $(-2, -1)$, $(1, 2)$, $(-1, -2)$. Compute $C = \frac{1}{N - 1}\sum_k x_kx_k^\T$, its eigenvalues and eigenvectors, and the fraction of variance on the first principal component. Where will Oja's rule take the weight vector of a linear post neuron fed with this data?
+\item Show that Hebb's rule with a linear post neuron $a_i = w_i^\T a$ gives $\mathbb{E}[\Delta w_i] = \eta\,Cw_i$, and say why this diverges. Show that a fixed point of Oja's rule must satisfy $Cw_i = (w_i^\T Cw_i)\,w_i$, and what that implies. Then, with $W(\Delta t) = \alpha^+e^{-\Delta t/\tau^+}$ for $\Delta t = t_{\mathrm{post}} - t_{\mathrm{pre}} > 0$ and $-\alpha^-e^{\Delta t/\tau^-}$ otherwise ($\tau^\pm = 10\,\mathrm{ms}$), find the sign and relative size of the change for a pre spike at $10\,\mathrm{ms}$ with a post spike at $15\,\mathrm{ms}$, and with a post spike at $5\,\mathrm{ms}$.
+\end{enumerate}
+
+%=====================================================================
+\part*{Part C \quad Questions that each use two ideas}
+%=====================================================================
+
+\begin{trythis}
+These are the first questions in the set that are allowed to feel like the test. Attempt all four before opening their solutions.
+\end{trythis}
+
+\begin{enumerate}
+\item \textbf{Why is $x^2$ learned more slowly than $x$?} Lecture~8 shows PES learning $f(x) = x^2$ much more slowly than $f(x) = x$ with the same $\eta$. Using the delta rule written in the $\chi$ basis, show that each coefficient $\Phi_m$ approaches its target at a rate proportional to $\eta S_m$. Use the spectrum in Section~15 to estimate how much more slowly the part of $x^2$ that lives on $\chi_3$ is learned than the linear part.
+\item \textbf{Accumulate and decide.} Combine Sections~1, 3 and 4. With noise \texttt{rms=3}, sketch the accumulator and the decision output on aligned axes for $u = 0.2$ and $u = -0.1$ over $2\,\mathrm{s}$, first with default decision intercepts and then with \texttt{Uniform(0.4, 0.9)}. Mark the threshold crossings and the decision times. Does the model decide faster with stronger evidence, and by how much?
+\item \textbf{An LMU that learns online.} Replace the \texttt{eval\_points} connection of Section~9 with a PES-learned connection from the LMU ensemble to the category ensemble. Draw the network, say what the error population computes, and name one advantage and one disadvantage compared with \texttt{eval\_points}.
+\item \textbf{Three short answers, no equations.} (a) Why are the singular values of $\gamma$ the same whichever function you plan to decode? (b) Why is a pre-computed decoder not necessarily optimal once the network is spiking, and how can PES do better? (c) In adaptive control, what plays the role of the ``target'', and why don't we need to know it?
+\end{enumerate}
+
+%=====================================================================
+\part*{Part D \quad Practice Test 4 (30 minutes, 20 marks, closed book)}
+%=====================================================================
+
+\textit{Write answers on separate paper. Use symbolic answers and qualitative sketches; label axes and important values. No code is required.}
+
+\begin{enumerate}
+\item \textbf{An accumulator} [4 marks]. A 1-D ensemble (radius $1$) has a recurrent identity connection on a $50\,\mathrm{ms}$ synapse. A constant input $u$ enters through \texttt{transform=0.5} on a $5\,\mathrm{ms}$ synapse.
+\begin{enumerate}[label=(\alph*)]
+\item {}[1] Give $A$ and $B$ of the implemented system $\dot x = Ax + Bu$.
+\item {}[2] For $u = 0.2$ from $t = 0$, give the time to reach $x = 0.8$ ignoring the input-synapse mismatch, then correct it using the offset $(1 - \tin/\tau)B'u$.
+\item {}[1] Sketch $x(t)$ for $u = 0.2$ and $u = -0.1$ over $1\,\mathrm{s}$, showing where the traces stop.
+\end{enumerate}
+\item \textbf{The Legendre Memory Unit} [5 marks]. Take $q = 3$, $\theta = 1\,\mathrm{s}$, $\tau = 0.1\,\mathrm{s}$.
+\begin{enumerate}[label=(\alph*)]
+\item {}[2] Write $A$ and $B$, then $A'$ and $B'$.
+\item {}[2] Give the decoding rows for $u(t - \theta)$, for $u(t - \theta/2)$, and for the window average. Verify one of them on the steady state for a constant input.
+\item {}[1] Why can a delay be computed with a \texttt{transform}, while ``which of two frequencies is in the window'' needs a decoded \texttt{function}?
+\end{enumerate}
+\item \textbf{PES} [5 marks].
+\begin{enumerate}[label=(\alph*)]
+\item {}[2] A decoder update uses $a = (30, 40)\,\mathrm{Hz}$, $d = (0.01, 0.005)$, target $0.1$, $\eta = 10^{-4}$. Find $\varepsilon$, $\Delta d$, and the new error. Is this $\eta$ stable for this activity?
+\item {}[1] Write the PES weight update and say which quantities are local to the post neuron.
+\item {}[2] Draw a network that learns $f(x) = 1 - x$ online from a stimulus $x(t)$, labelling dimensions and the transform/function on each connection. What goes wrong if the error sign is flipped?
+\end{enumerate}
+\item \textbf{SVD} [4 marks]. Two neurons, $a_1 = 2 + x$ and $a_2 = 2 - x$, are sampled at $x = -1, 0, 1$.
+\begin{enumerate}[label=(\alph*)]
+\item {}[2] Compute $\gamma = \mathbf A^\T\mathbf A$, its singular values and vectors, and $\chi = \mathbf A\mathbf U$. Describe each $\chi_m$.
+\item {}[2] With noise $\sigma^2 = 4$, which of the two basis functions is at the edge of usability? What is the decoded $\hat x$ at $x = 1$? State the general rule linking $S_m$, $\sigma^2$ and usability.
+\end{enumerate}
+\item \textbf{Adaptive control} [2 marks]. A PD-controlled arm ($k_p = 25$, $mgL = 9.8$) with target $\theta^* = 0$ settles at $-0.37\,\mathrm{rad}$. An adaptive ensemble is added. State the error signal (with sign) driving its learning rule, and the function it ends up computing.
+\end{enumerate}
+
+\vspace{8pt}
+Mark Part D yourself against the solutions, and redo every section from Parts A--C where you lost a mark.
+
+\end{document}
