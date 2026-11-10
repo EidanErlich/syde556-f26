@@ -1,0 +1,123 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.9in,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{SYDE 556/750 \quad Practice Test 3C: Nengo \& Simple Dynamics}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+
+\newcommand{\trc}{\tau_{RC}}
+\newcommand{\tref}{\tau_{\mathrm{ref}}}
+\newcommand{\tin}{\tau_{\mathrm{in}}}
+\newcommand{\question}[2]{\par\vspace{10pt}\textbf{Question #1.}\hfill\textbf{[#2 marks]}\par}
+\newcommand{\answerbox}[1]{\par\noindent\framebox[\linewidth]{\rule{0pt}{#1}}\par}
+
+\setlist[itemize]{itemsep=1pt}
+
+\begin{document}
+
+\begin{center}
+\IfFileExists{../lectures/assets/uwlogo.pdf}{\includegraphics[height=1.1cm]{../lectures/assets/uwlogo.pdf}\\[10pt]}{}
+SYDE 556/750 -- Simulating Neurobiological Systems\\[2pt]
+{\Large\bfseries Practice Test 3C: Nengo \& Simple Dynamics}
+\end{center}
+
+\vspace{6pt}
+Student ID: \rule{4.5cm}{0.4pt} \hfill Time: 30 minutes \hfill Total: 20 marks (plus 2 bonus)
+
+\begin{itemize}
+\item \textbf{Closed book.} No notes, textbook, calculator, phone, or other devices.
+\item The marks for each question are shown in brackets on the right.
+\item Write your answers in the space provided. Show your work --- partial credit is given for correct reasoning.
+\item Unless stated otherwise, every synapse is the first-order low-pass $h(t) = \frac1\tau e^{-t/\tau}$.
+\end{itemize}
+\hrule
+
+%---------------------------------------------------------------------
+\question{1}{4}
+(a) A 1-D LIF neuron has a positive encoder. Its normalized intercept is $0.25$, and its maximum firing rate is $100$ Hz when the represented value sits at the edge of the radius. On the left, sketch its tuning curve for \texttt{radius=1} and for \texttt{radius=2}, on the same axes, for $-2 \le x \le 2$. Label where each curve starts firing and where it reaches $100$ Hz.
+
+(b) A neuron in a 2-D ensemble has \texttt{radius=3}, encoder $e = (-1, 0)$, normalized intercept $1/3$, and maximum rate $90$ Hz at the radius along its encoder. On the right, sketch its firing rate along the line $\mathbf x = (s, 0)$ for $s \in [-3, 3]$. Label where it starts firing.
+
+\noindent\framebox[0.5\linewidth][l]{\rule{0pt}{5.6cm}(a)}\framebox[0.5\linewidth][l]{\rule{0pt}{5.6cm}(b)}
+
+\vspace{2.4cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{2}{4}
+Both connections of a population use the synapse $\tau = 0.1$ s.
+
+(a) Choose the transforms so the population implements the leaky integrator
+\[
+\dot x = -\frac{1}{5}\,x + v.
+\]
+With $v = 0$ and $x(0) = 0.4$, write $x(t)$ and give its value at $t = 5$ s.
+\vspace{4.4cm}
+
+(b) Using the same $\tau$, choose the transforms for
+\[
+\dot x = -20x + 20u.
+\]
+Sketch the response to a unit step in $u$ from $x(0) = 0$. On the same axes, sketch the response of the synapse alone (a low-pass of time constant $0.1$ s, with no recurrence). Which curve settles faster?
+\vspace{5.2cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{3}{4}
+A population with radius $2$ and synaptic time constant $\tau$ has no input, $g(u) = 0$, and recurrent connection $f(x) = x^3$.
+
+(a) Write $\tau\dot x = \varphi(x)$. Find every equilibrium and say whether it is stable or unstable.
+\vspace{3.6cm}
+
+(b) Sketch $\varphi(x)$ for $-2 \le x \le 2$ with arrows on the $x$-axis. Describe the motion from $x(0) = 0.5$ and from $x(0) = 1.2$.
+\answerbox{5.6cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{4}{4}
+A 2-D population implements the oscillator
+\[
+\dot{\mathbf x} = \begin{bmatrix} 0 & -\omega \\ \omega & 0 \end{bmatrix}\mathbf x, \qquad \omega = \pi~\text{rad/s},
+\]
+with recurrent synapse $\tau = 0.05$ s.
+
+(a) Give the recurrent transform $A'$. Leave $\pi$ in your answer.
+\vspace{2.6cm}
+
+(b) After a short kick the state is $\mathbf x(0) = (0.6,\ 0.8)$. Write $x_1(t)$ and $x_2(t)$ in terms of $\sin(\pi t)$ and $\cos(\pi t)$. In the box, sketch both signals for $0 \le t \le 2$ s, and sketch the trajectory in the $(x_1, x_2)$ plane with an arrow for its direction.
+\answerbox{5.2cm}
+
+\newpage
+%---------------------------------------------------------------------
+\question{5}{4}
+An integrator $\dot x = u$ is built with recurrent transform $1$, recurrent synapse $\tau = 0.1$ s, and input transform $\tau$. It starts at $x(0) = 0$, and the ensemble radius is $2$. The input is the pulse
+\[
+u(t) = \begin{cases} 3, & 0 \le t < 0.4~\text{s},\\ 0, & t \ge 0.4~\text{s}. \end{cases}
+\]
+
+(a) Find the ideal $x(t)$ and sketch it.
+\vspace{1.6cm}
+\answerbox{3.4cm}
+
+(b) The input connection uses a faster synapse, $\tin = 20$ ms. Sketch the decoded $x(t)$ on top of your answer to (a). How large is the gap just before $t = 0.4$ s, and what value does $x$ settle to after the pulse?
+\answerbox{3.6cm}
+
+\newpage
+%---------------------------------------------------------------------
+\textbf{Bonus Question 1.}\hfill\textbf{[2 bonus marks]}\par
+The integrator of Question 5 is rebuilt with recurrent transform $0.98$ instead of $1$, and with matched synapses. There is no input, and it is holding $x(0) = 1$. What dynamical system is it actually implementing? How long until the held value has fallen to $0.5$? Sketch $x(t)$.
+\vspace{6cm}
+
+\end{document}
